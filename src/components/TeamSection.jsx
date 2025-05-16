@@ -5,50 +5,63 @@ import Image from 'next/image';
 import { motion, AnimatePresence, useInView, useAnimation } from 'framer-motion';
 import { FaLinkedinIn, FaTwitter, FaGithub } from 'react-icons/fa';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/solid';
+import { ServerIcon, CogIcon, ShieldCheckIcon } from '@heroicons/react/24/outline';
 
 // Team members data
 const teamMembers = [
   {
     id: 1,
-    name: "Ahmad Ch",
-    role: "CEO & Founder",
-    image: "https://i.imgur.com/i6P7Dci.jpeg",
-    bio: "Over 15 years of experience in cloud infrastructure and enterprise security. Previously led engineering teams at AWS and Microsoft.",
-    expertise: ["Cloud Architecture", "Enterprise Security", "Strategic Planning"],
+    name: "Ahmad Ch.",
+    role: "CEO & CTO",
+    image: "https://i.imgur.com/8bAAGUK.png",
+    bio: "With over 15 years of experience in cloud infrastructure and virtualization technology, Ahmad leads NextGenRDP's strategic vision and technical innovation. He has pioneered several breakthroughs in virtual desktop optimization and secure remote access solutions that have become industry standards.",
+    expertise: ["Infrastructure Architecture", "Enterprise Security"],
+    achievements: { value: "15+", label: "Years Experience" },
     social: {
       linkedin: "https://linkedin.com/in/example",
       twitter: "https://twitter.com/example",
-      github: "https://github.com/example"
+      github: "https://github.com/example",
+      email: "ahmad@nextgenrdp.com"
     },
-    accentColor: "from-blue-500 to-indigo-600"
+    accentColor: "from-blue-500 to-indigo-600",
+    icon: ServerIcon
   },
   {
     id: 2,
     name: "Abdul Rehman Ch",
-    role: "Technical Lead",
-    image: "https://i.imgur.com/yzodBwQ.jpeg",
-    bio: "Experienced Technical Support Lead with a strong background in troubleshooting complex systems, managing support teams, and ensuring high customer satisfaction in IT service environments.",
-    expertise: ["Technical Troubleshooting", "Customer Support Management", "IT Service Delivery"],
+    role: "Web Support Engineer",
+    image: "https://i.imgur.com/R9q8TsQ.jpeg",
+    bio: "Abdul Rehman Ch. is a Website Support Engineer with a strong focus on website maintenance, technical troubleshooting, and CMS management. With years of hands-on experience, he ensures smooth website performance, uptime, and a seamless user experience across platforms.",
+    expertise: [
+      "Website Maintenance",
+      "Technical Support"
+    ],
+    achievements: { value: "99.9%", label: "Uptime Rate" },
     social: {
       linkedin: "https://linkedin.com/in/example",
       twitter: "https://twitter.com/example",
-      github: "https://github.com/example"
+      github: "https://github.com/example",
+      email: "abdul@nextgenrdp.com"
     },
-    accentColor: "from-emerald-500 to-cyan-500"
+    accentColor: "from-emerald-500 to-cyan-500",
+    icon: CogIcon
   },
   {
     id: 3,
-    name: "Ahmad Ch",
-    role: "Head of Security",
-    image: "https://i.imgur.com/bLXbW2g.jpg",
-    bio: "Security expert with CISSP certification and background in enterprise-level threat detection and prevention.",
-    expertise: ["Network Security", "Threat Intelligence", "Compliance"],
+    name: "Ahmad Ch.",
+    role: "CISO & Infrastructure Lead",
+    image: "https://i.imgur.com/hROKZzl.jpeg",
+    bio: "Ahmad Raza leads NextGenRDP's security operations with CISSP and CISM certifications, implementing our multi-layered protection framework. His innovative approach to infrastructure has enabled us to deliver enterprise-grade RDP solutions with zero reported security breaches while maintaining exceptional performance metrics.",
+    expertise: ["Cybersecurity", "Infrastructure Optimization"],
+    achievements: { value: "0", label: "Security Breaches" },
     social: {
       linkedin: "https://linkedin.com/in/example",
       twitter: "https://twitter.com/example",
-      github: "https://github.com/example"
+      github: "https://github.com/example",
+      email: "ahmadraza@nextgenrdp.com"
     },
-    accentColor: "from-amber-500 to-orange-600"
+    accentColor: "from-amber-500 to-orange-600",
+    icon: ShieldCheckIcon
   }
 ];
 
