@@ -323,27 +323,84 @@ const Footer = () => {
                     transition={{ type: 'spring', stiffness: 400, damping: 10 }}
                   >
                     <div className="relative h-14 w-14 mr-3">
-                      <div className="absolute inset-0 rounded-full bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-600 opacity-90 blur-[12px] group-hover:blur-[14px] group-hover:scale-110 transition-all duration-300"></div>
-                      <div className="relative h-full w-full flex items-center justify-center rounded-full bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-600 border-2 border-white/30 dark:border-gray-800/30 group-hover:from-violet-500 group-hover:to-indigo-500 transition-all duration-300 shadow-md">
-                        <motion.div
-                          animate={{ 
-                            rotate: [0, 10, 0, -10, 0],
-                            scale: [1, 1.05, 1, 1.05, 1],
-                          }}
-                          transition={{ 
-                            duration: 5,
-                            ease: "easeInOut",
-                            repeat: Infinity,
-                            repeatType: "reverse"
-                          }}
-                          className="relative"
-                        >
-                          <SparklesIcon className="h-7 w-7 text-white" />
-                        </motion.div>
+                      {/* Advanced professional logo */}
+                      <div className="relative h-full w-full flex items-center justify-center">
+                        {/* Advanced professional logo */}
+                        <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-14 h-14" aria-hidden="true">
+                          {/* Hexagon base with beveled edges */}
+                          <path 
+                            d="M20 2L35.3205 11V29L20 38L4.67949 29V11L20 2Z" 
+                            fill="url(#footer-logo-gradient)"
+                            className="drop-shadow-lg"
+                          />
+                          
+                          {/* Inner hexagon for layered effect */}
+                          <path 
+                            d="M20 7L30.3205 13V25L20 31L9.67949 25V13L20 7Z" 
+                            fill="url(#footer-inner-gradient)"
+                            opacity="0.7"
+                          />
+                          
+                          {/* Tech circuit lines */}
+                          <path 
+                            d="M12 14H28M12 20H28M12 26H28" 
+                            stroke="white" 
+                            strokeWidth="1.25" 
+                            strokeLinecap="round"
+                          />
+                          
+                          {/* Diagonal connection lines */}
+                          <path 
+                            d="M15 12L25 28M25 12L15 28" 
+                            stroke="rgba(255,255,255,0.5)" 
+                            strokeWidth="0.75" 
+                            strokeLinecap="round"
+                            strokeDasharray="1 2"
+                          />
+                          
+                          {/* Center node */}
+                          <circle cx="20" cy="20" r="2.5" fill="white" opacity="0.9" />
+                          <circle cx="20" cy="20" r="1.5" fill="#4ADE80" />
+                          
+                          {/* Status nodes with professional glow */}
+                          <circle cx="9" cy="14" r="1.75" fill="#4ADE80" />
+                          <circle cx="9" cy="14" r="2.5" stroke="#4ADE80" strokeWidth="0.5" strokeOpacity="0.3" />
+                          
+                          <circle cx="9" cy="20" r="1.75" fill="#3B82F6" />
+                          <circle cx="9" cy="20" r="2.5" stroke="#3B82F6" strokeWidth="0.5" strokeOpacity="0.3" />
+                          
+                          <circle cx="9" cy="26" r="1.75" fill="#A855F7" />
+                          <circle cx="9" cy="26" r="2.5" stroke="#A855F7" strokeWidth="0.5" strokeOpacity="0.3" />
+                          
+                          {/* Tech connector dots */}
+                          <circle cx="31" cy="14" r="1" fill="white" opacity="0.8" />
+                          <circle cx="31" cy="20" r="1" fill="white" opacity="0.8" />
+                          <circle cx="31" cy="26" r="1" fill="white" opacity="0.8" />
+                          
+                          {/* Digital corner accents */}
+                          <path d="M5 11L8 11L8 14" stroke="white" strokeWidth="0.75" strokeOpacity="0.6" fill="none" />
+                          <path d="M35 11L32 11L32 14" stroke="white" strokeWidth="0.75" strokeOpacity="0.6" fill="none" />
+                          <path d="M5 29L8 29L8 26" stroke="white" strokeWidth="0.75" strokeOpacity="0.6" fill="none" />
+                          <path d="M35 29L32 29L32 26" stroke="white" strokeWidth="0.75" strokeOpacity="0.6" fill="none" />
+                          
+                          {/* Enhanced gradients */}
+                          <defs>
+                            <linearGradient id="footer-logo-gradient" x1="4.67949" y1="2" x2="35.3205" y2="38" gradientUnits="userSpaceOnUse">
+                              <stop offset="0" stopColor="#4F46E5" />
+                              <stop offset="0.3" stopColor="#6366F1" />
+                              <stop offset="0.7" stopColor="#8B5CF6" />
+                              <stop offset="1" stopColor="#7C3AED" />
+                            </linearGradient>
+                            <linearGradient id="footer-inner-gradient" x1="9.67949" y1="7" x2="30.3205" y2="31" gradientUnits="userSpaceOnUse">
+                              <stop offset="0" stopColor="#818CF8" />
+                              <stop offset="1" stopColor="#4F46E5" />
+                            </linearGradient>
+                          </defs>
+                        </svg>
                       </div>
                     </div>
                     <div>
-                      <span className="font-serif text-2xl font-semibold bg-gradient-to-r from-violet-500 via-indigo-500 to-purple-500 bg-clip-text text-transparent block tracking-wider uppercase leading-tight group-hover:from-violet-400 group-hover:to-indigo-400 transition-all duration-300 drop-shadow-sm">
+                      <span className="font-sans text-2xl font-extrabold bg-gradient-to-r from-violet-500 via-indigo-500 to-purple-500 bg-clip-text text-transparent block tracking-wider uppercase leading-tight group-hover:from-violet-400 group-hover:to-indigo-400 transition-all duration-300">
                         NextGenRDP
                       </span>
                       <span className="text-xs text-gray-400 tracking-widest uppercase">Premium Remote Desktop Services</span>
