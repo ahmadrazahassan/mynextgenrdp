@@ -367,8 +367,7 @@ const HeroSection = () => {
                 }}
                 style={{
                   transformStyle: "preserve-3d",
-                  willChange: "transform",
-                  transform: "translateZ(0)"
+                  willChange: "transform"
                 }}
               >
                 {/* Enhanced data scanning effect */}
@@ -396,7 +395,7 @@ const HeroSection = () => {
                 {[...Array(6)].map((_, i) => {
                   const angle = (i / 6) * Math.PI * 2;
                   const distance = 200;
-                  const delay = i * 0.5;
+                  const delay = i * 0.8;
                   
                   return (
                     <motion.div 
@@ -417,11 +416,11 @@ const HeroSection = () => {
                           0, 
                           Math.sin(angle + Math.PI) * distance
                         ],
-                        opacity: [0, 1, 0],
-                        scale: [0.5, 1.2, 0.5]
+                        opacity: [0, 0.8, 0],
+                        scale: [0.5, 1, 0.5]
                       }}
                       transition={{
-                        duration: 3 + Math.random(),
+                        duration: 4 + Math.random(),
                         repeat: Infinity,
                         delay: delay,
                         ease: "easeInOut"
@@ -431,26 +430,26 @@ const HeroSection = () => {
                 })}
                 
                 {/* Rotation container */}
-                <motion.div
+                <motion.div 
                   className="w-full h-full relative"
                   animate={{
-                    rotateY: cubeHovering ? [0, 360, 720] : [0, 360],
-                    rotateX: cubeHovering ? [0, 30, -30, 0] : [5, 15, 5, -10, 5],
-                    rotateZ: cubeHovering ? [0, 15, -15, 0] : [0, 5, 0, -5, 0],
+                    rotateY: [0, 360],
+                    rotateX: [0, 5, -5, 0],
+                    rotateZ: [0, 3, 0, -3, 0],
                   }}
                   transition={{
                     rotateY: { 
-                      duration: cubeHovering ? 4 : 20, 
+                      duration: 30, 
                       repeat: Infinity, 
                       ease: "linear"
                     },
                     rotateX: { 
-                      duration: cubeHovering ? 3 : 24, 
+                      duration: 20, 
                       repeat: Infinity, 
                       ease: "easeInOut"
                     },
                     rotateZ: { 
-                      duration: cubeHovering ? 5 : 28, 
+                      duration: 25, 
                       repeat: Infinity, 
                       ease: "easeInOut"
                     }
@@ -499,19 +498,15 @@ const HeroSection = () => {
                         initial={{ opacity: 0 }}
                         animate={{
                           opacity: 1,
-                          boxShadow: cubeHovering ? 
-                            [`0 0 25px ${color}80`, `0 0 40px ${color}90`, `0 0 25px ${color}80`] :
-                            [`0 0 15px ${color}70`, `0 0 25px ${color}80`, `0 0 15px ${color}70`],
-                          borderWidth: ["2px", "3px", "2px"],
-                          borderColor: cubeHovering ? 
-                            [color, 'rgb(168, 85, 247)', color] : 
-                            [color, color, color]
+                          boxShadow: [`0 0 15px ${color}70`, `0 0 25px ${color}80`, `0 0 15px ${color}70`],
+                          borderWidth: ["2px", "2.5px", "2px"],
+                          borderColor: [color, color, color]
                         }}
                         transition={{
                           opacity: { duration: 1 },
-                          boxShadow: { duration: 3, repeat: Infinity, ease: "easeInOut" },
-                          borderWidth: { duration: 3, repeat: Infinity, ease: "easeInOut" },
-                          borderColor: { duration: 3, repeat: Infinity, ease: "easeInOut" }
+                          boxShadow: { duration: 4, repeat: Infinity, ease: "easeInOut" },
+                          borderWidth: { duration: 4, repeat: Infinity, ease: "easeInOut" },
+                          borderColor: { duration: 4, repeat: Infinity, ease: "easeInOut" }
                         }}
                       >
                         {/* Server front rack design */}
@@ -880,19 +875,15 @@ const HeroSection = () => {
                       willChange: "transform, opacity, box-shadow"
                     }}
                     animate={{
-                      scale: cubeHovering ? [1, 1.3, 1.1] : [1, 1.15, 1],
-                      boxShadow: cubeHovering ? [
-                        "0 0 30px 10px rgba(139, 92, 246, 0.8)",
-                        "0 0 50px 20px rgba(168, 85, 247, 0.9)",
-                        "0 0 30px 10px rgba(139, 92, 246, 0.8)"
-                      ] : [
+                      scale: [1, 1.05, 1],
+                      boxShadow: [
                         "0 0 25px 8px rgba(139, 92, 246, 0.7)",
                         "0 0 40px 15px rgba(139, 92, 246, 0.8)",
                         "0 0 25px 8px rgba(139, 92, 246, 0.7)"
                       ]
                     }}
                     transition={{
-                      duration: 3,
+                      duration: 5,
                       repeat: Infinity,
                       ease: "easeInOut"
                     }}
@@ -901,10 +892,10 @@ const HeroSection = () => {
                     <motion.div
                       className="absolute inset-0 rounded-full overflow-hidden bg-gradient-to-br from-purple-300/80 to-fuchsia-600/80"
                       animate={{
-                        opacity: [0.7, 1, 0.7]
+                        opacity: [0.7, 0.9, 0.7]
                       }}
                       transition={{
-                        duration: 2,
+                        duration: 4,
                         repeat: Infinity,
                         ease: "easeInOut"
                       }}
@@ -914,7 +905,7 @@ const HeroSection = () => {
                     <motion.div
                       className="absolute inset-0 flex items-center justify-center"
                       animate={{ rotate: [0, 360] }}
-                      transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+                      transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
                     >
                       <svg width="100%" height="100%" viewBox="0 0 100 100">
                         <defs>
@@ -952,11 +943,11 @@ const HeroSection = () => {
                   filter: "blur(30px)"
                 }}
                 animate={{
-                  opacity: cubeHovering ? [0.5, 0.8, 0.5] : [0.4, 0.6, 0.4],
-                  scale: cubeHovering ? [0.95, 1.15, 0.95] : [0.95, 1.05, 0.95]
+                  opacity: [0.4, 0.5, 0.4],
+                  scale: [0.95, 1.05, 0.95]
                 }}
                 transition={{
-                  duration: cubeHovering ? 2.5 : 5,
+                  duration: 6,
                   repeat: Infinity,
                   ease: "easeInOut"
                 }}
