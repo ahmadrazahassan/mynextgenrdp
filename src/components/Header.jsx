@@ -237,7 +237,7 @@ const Header = () => {
           initial={{ opacity: 0, x: 10 }} 
           animate={{ opacity: 1, x: 0 }} 
           transition={{ duration: 0.3 }}
-          className="hidden md:flex md:items-center md:space-x-3"
+            className="hidden md:flex md:items-center md:space-x-3"
         >
           <ActionButton href="/register" variant="secondary">
             <UserPlusIcon className="h-5 w-5 mr-1.5" /> Register
@@ -267,9 +267,9 @@ const Header = () => {
                 exit={{ opacity: 0 }} 
                 transition={{ duration: 0.15 }}
               >
-                {isMobileMenuOpen ? <XMarkIcon className="h-6 w-6"/> : <Bars3Icon className="h-6 w-6"/>}
-              </motion.div>
-            </AnimatePresence>
+                    {isMobileMenuOpen ? <XMarkIcon className="h-6 w-6"/> : <Bars3Icon className="h-6 w-6"/>}
+                  </motion.div>
+               </AnimatePresence>
           </motion.button>
         </div>
       </nav>
