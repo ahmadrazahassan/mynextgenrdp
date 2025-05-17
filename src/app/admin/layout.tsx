@@ -58,7 +58,9 @@ export default function AdminLayout({
         
         if (!data.isAdmin) {
           // Not an admin, redirect to admin login
-          router.push("/admin/login?redirect=" + encodeURIComponent(pathname));
+          // Fix the type error by ensuring pathname is not null
+          const redirectPath = pathname ? encodeURIComponent(pathname) : '';
+          router.push(`/admin/login?redirect=${redirectPath}`);
           return;
         }
         
@@ -539,4 +541,4 @@ export default function AdminLayout({
       )}
     </div>
   );
-} 
+}

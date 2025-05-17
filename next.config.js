@@ -14,6 +14,25 @@ const nextConfig = {
   staticPageGenerationTimeout: 180,
   // Set output to server mode to avoid static page generation issues
   output: 'standalone',
+  // Add dynamic route configuration to fix cookie-related errors
+  experimental: {
+    // Mark routes that use cookies as dynamic to prevent static generation errors
+    serverComponentsExternalPackages: ['@prisma/client', 'bcryptjs'],
+  },
+  // Configure routes that use cookies as dynamic routes
+  async headers() {
+    return [
+      {
+        source: '/api/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-store',
+          },
+        ],
+      },
+    ];
+  },
 }
 
 module.exports = nextConfig

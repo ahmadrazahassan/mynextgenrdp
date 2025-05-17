@@ -181,7 +181,9 @@ export async function middleware(request: NextRequest) {
 // Configure the middleware to match specific routes but exclude API routes during build
 export const config = {
   matcher: [
-    // Match all pages routes but exclude API to avoid static generation issues
-    '/((?!_next/static|_next/image|favicon.ico|api/).*)',
+    // Match all pages routes but not API routes
+    '/((?!_next|api/|favicon.ico).*)',
+    // Only match specific API routes that don't use cookies
+    '/api/public/:path*'
   ],
-}; 
+};

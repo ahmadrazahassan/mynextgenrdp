@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -52,7 +52,8 @@ const errorMessages = {
   server_error: "A server error occurred. Please try again later."
 };
 
-export default function AdminLoginPage() {
+// Separate component to use searchParams inside Suspense
+function AdminLoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
@@ -756,7 +757,6 @@ export default function AdminLoginPage() {
               </CardFooter>
               
               {/* Bottom security indicator */}
-              <div className="absolute -bottom-1 left-0 right-0 h-1 bg-gradient-to-r from-slate-900 via-blue-600 to-slate-900"></div>
             </Card>
           </motion.div>
         )}
@@ -819,3 +819,19 @@ const SecurityBadge = ({ icon, text }: { icon: React.ReactNode, text: string }) 
     <span className="text-slate-300">{text}</span>
   </div>
 );
+
+// Main component with Suspense
+export default function AdminLoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50">
+        <div className="p-8 rounded-xl bg-white shadow-2xl border border-gray-100 flex flex-col items-center">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-600 mb-4" />
+          <p className="text-gray-600 font-medium">Loading...</p>
+        </div>
+      </div>
+    }>
+      <AdminLoginContent />
+    </Suspense>
+  );
+}
