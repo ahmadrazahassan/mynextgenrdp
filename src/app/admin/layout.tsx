@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { 
   Users, Package, Tag, Database, Image, Home, 
   LogOut, Menu, X, BarChart3, Settings, Bell, Search,
@@ -11,7 +11,8 @@ import {
   User,
   ShoppingCart,
   FileText,
-  Upload
+  Upload,
+  Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,7 +38,41 @@ export default function AdminLayout({
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
   const [isClient, setIsClient] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
+
+  // Check if the user is authenticated and is an admin
+  useEffect(() => {
+    const checkAdminAuth = async () => {
+      try {
+        // Skip auth check for login page
+        if (pathname === "/admin/login") {
+          setIsCheckingAuth(false);
+          return;
+        }
+
+        const response = await fetch("/api/auth/admin/check");
+        const data = await response.json();
+        
+        if (!data.isAdmin) {
+          // Not an admin, redirect to admin login
+          router.push("/admin/login?redirect=" + encodeURIComponent(pathname));
+          return;
+        }
+        
+        setIsAdmin(true);
+      } catch (error) {
+        console.error("Admin auth check error:", error);
+        router.push("/admin/login?error=server_error");
+      } finally {
+        setIsCheckingAuth(false);
+      }
+    };
+    
+    checkAdminAuth();
+  }, [pathname, router]);
 
   // Handle hydration by setting isClient after mount
   useEffect(() => {
@@ -63,6 +98,35 @@ export default function AdminLayout({
     // Cleanup
     return () => window.removeEventListener("resize", checkScreenSize);
   }, []);
+
+  // Return loading state while checking authentication
+  if (isCheckingAuth && pathname !== "/admin/login") {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50">
+        <div className="p-8 rounded-xl bg-white shadow-2xl border border-gray-100 flex flex-col items-center">
+          <div className="h-16 w-16 relative mb-4">
+            <div className="absolute inset-0 bg-blue-600 rounded-full opacity-20 animate-ping"></div>
+            <div className="absolute inset-0 bg-blue-600 rounded-full opacity-30 animate-pulse"></div>
+            <div className="relative h-full w-full bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center shadow-lg">
+              <Shield className="h-8 w-8 text-white" />
+            </div>
+          </div>
+          <Loader2 className="h-8 w-8 animate-spin text-blue-600 mb-4" />
+          <p className="text-gray-600 font-medium">Verifying admin credentials...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If we're on the login page, just render children
+  if (pathname === "/admin/login") {
+    return <>{children}</>;
+  }
+
+  // If we're here and not on the login page, we should be authenticated as admin
+  if (!isAdmin && pathname !== "/admin/login") {
+    return null; // This should not happen due to the redirect in the useEffect
+  }
 
   const mainNavItems: NavItem[] = [
     {
@@ -161,6 +225,16 @@ export default function AdminLayout({
       transitionEnd: { 
         display: "none" 
       }
+    }
+  };
+
+  // Handle logout click
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+      router.push("/admin/login");
+    } catch (error) {
+      console.error("Logout error:", error);
     }
   };
 
@@ -333,6 +407,18 @@ export default function AdminLayout({
               <LogOut className="h-4 w-4" />
             </Button>
           </div>
+        </div>
+
+        {/* Add logout button at the bottom of sidebar */}
+        <div className="mt-auto pt-4 pb-6 px-3">
+          <Button 
+            variant="ghost" 
+            className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
+            onClick={handleLogout}
+          >
+            <LogOut className="h-5 w-5 mr-2" />
+            <span>Sign Out</span>
+          </Button>
         </div>
       </>
     );

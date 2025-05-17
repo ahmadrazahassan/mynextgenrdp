@@ -29,7 +29,9 @@ const publicRoutes = [
   '/images/',
   '/favicon.ico',
   '/_next', // Add Next.js internal routes as public
-  '/public/'
+  '/public/',
+  // Add admin login to public routes
+  '/admin/login'
 ];
 
 // Define admin-only routes
@@ -88,8 +90,15 @@ export async function middleware(request: NextRequest) {
   
   // Check if the user is authenticated (only for routes that require auth)
   if (!token) {
-    // Not authenticated, redirect to login (only for non-API routes)
-    if (!pathname.startsWith('/api/')) {
+    // Not authenticated, redirect to appropriate login page
+    if (isAdminRoute) {
+      // For admin routes, redirect to admin login
+      console.log(`[Middleware] Access denied. No token found. Redirecting to admin login from: ${pathname}`);
+      const loginUrl = new URL('/admin/login', request.url);
+      loginUrl.searchParams.set('redirect', pathname); // Store the original destination
+      return NextResponse.redirect(loginUrl);
+    } else if (!pathname.startsWith('/api/')) {
+      // For non-admin protected routes, redirect to main login
       console.log(`[Middleware] Access denied. No token found. Redirecting to login from: ${pathname}`);
       const loginUrl = new URL('/login', request.url);
       loginUrl.searchParams.set('redirect', pathname); // Store the original destination
@@ -124,9 +133,10 @@ export async function middleware(request: NextRequest) {
     // For admin routes, check if the user is an admin
     if (isAdminRoute && !payload.isAdmin) {
       console.log(`[Middleware] Admin access denied for user ${userId} to route: ${pathname}`);
-      // Redirect non-admin users to dashboard
-      const dashboardUrl = new URL('/dashboard', request.url);
-      return NextResponse.redirect(dashboardUrl);
+      // Redirect non-admin users to admin login with a message
+      const adminLoginUrl = new URL('/admin/login', request.url);
+      adminLoginUrl.searchParams.set('error', 'admin_required');
+      return NextResponse.redirect(adminLoginUrl);
     }
     
     // User is authenticated, allow access
@@ -143,15 +153,22 @@ export async function middleware(request: NextRequest) {
       },
     });
   } catch (error) {
-    // For protected routes only, redirect to login on invalid token
-    if (requiresAuth || isAdminRoute) {
-      // Invalid token, redirect to login
-      console.error(`[Middleware] Token verification failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      
-      // Clear the invalid auth token cookie
-      const response = NextResponse.redirect(new URL('/login', request.url));
+    // Token verification failed
+    console.error(`[Middleware] Token verification failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    
+    // For admin routes, redirect to admin login
+    if (isAdminRoute) {
+      const adminLoginUrl = new URL('/admin/login', request.url);
+      const response = NextResponse.redirect(adminLoginUrl);
       response.cookies.delete('auth_token');
-      
+      return response;
+    }
+    
+    // For protected routes, redirect to main login
+    if (requiresAuth) {
+      const loginUrl = new URL('/login', request.url);
+      const response = NextResponse.redirect(loginUrl);
+      response.cookies.delete('auth_token');
       return response;
     }
     

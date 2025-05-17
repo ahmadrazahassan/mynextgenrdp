@@ -15,6 +15,7 @@ const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
   password: z.string().min(1, "Password is required"),
   rememberMe: z.boolean().optional().default(false),
+  adminOnly: z.boolean().optional().default(false) // Add adminOnly flag
 });
 
 // Maximum failed login attempts before account lockout
@@ -61,7 +62,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { email, password, rememberMe } = validationResult.data;
+    const { email, password, rememberMe, adminOnly } = validationResult.data;
 
     // Find user by email
     const user = await prisma.user.findUnique({
@@ -92,6 +93,26 @@ export async function POST(request: NextRequest) {
         {
           success: false,
           error: "Your account has been locked due to too many failed attempts. Please reset your password.",
+        },
+        { status: 403 }
+      );
+    }
+
+    // Check admin rights if adminOnly flag is set
+    if (adminOnly && !userWithSecurity.isAdmin) {
+      console.log("Admin access denied:", userWithSecurity.id);
+      // Increment failed attempts but don't lock account for this type of failure
+      await prisma.user.update({
+        where: { id: userWithSecurity.id },
+        data: { 
+          failedLoginAttempts: (userWithSecurity.failedLoginAttempts ?? 0) + 1 
+        }
+      });
+      
+      return NextResponse.json(
+        {
+          success: false,
+          error: "You don't have administrator privileges.",
         },
         { status: 403 }
       );

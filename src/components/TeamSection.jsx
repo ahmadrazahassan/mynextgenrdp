@@ -1,4 +1,4 @@
-'use client';
+ 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Image from 'next/image';
@@ -399,6 +399,7 @@ const Card3D = ({ member, isActive, index, activeIndex, total, position, mouseX,
         rotateX: isActive ? rotateX : 0,
         rotateY: isActive ? rotateY : 0,
       }}
+
     >
       <div className={`relative bg-white rounded-2xl shadow-xl overflow-hidden h-full w-full
                      ${!isActive && 'opacity-70 pointer-events-none'}`}>
