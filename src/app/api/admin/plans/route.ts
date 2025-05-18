@@ -48,12 +48,14 @@ export async function GET(request: NextRequest) {
         discountedPrice: plan.price_pkr * 0.9, // Example discount calculation, should come from DB
         isPopular: plan.label === 'popular',
         active: plan.is_active,
+        themeColor: plan.theme_color || 'sky',
         specs: {
           cpu: plan.cpu,
           ram: plan.ram,
           storage: plan.storage,
           bandwidth: plan.bandwidth,
-          location: plan.os || 'Default Location'
+          location: plan.category_id === 1 ? 'US East' : 'EU Central', // Default location
+          os: plan.os || (plan.category_id === 1 ? 'Windows Server 2022' : 'Windows 10')
         },
         duration: 1, // Default to 1 month
         description: plan.description || '',
@@ -95,12 +97,14 @@ export async function GET(request: NextRequest) {
             discountedPrice: plan.price_pkr * 0.9,
             isPopular: plan.label === 'popular',
             active: plan.is_active,
+            themeColor: plan.theme_color || 'sky',
             specs: {
               cpu: plan.cpu,
               ram: plan.ram,
               storage: plan.storage,
               bandwidth: plan.bandwidth,
-              location: plan.os || 'Default Location'
+              location: plan.category_id === 1 ? 'US East' : 'EU Central', // Default location
+              os: plan.os || (plan.category_id === 1 ? 'Windows Server 2022' : 'Windows 10')
             },
             duration: 1,
             description: plan.description || '',
@@ -200,142 +204,157 @@ async function createSamplePlans() {
       `);
     }
     
-    // Import plans from the plans.js file
+    // Import plans from the plans.ts file
     const plansModule = await import('@/data/plans');
     
-    // Access the exported variables - Type assertion since we know the shape
-    const rdpPlans = (plansModule as any).rdpPlans || [];
-    const vpsPlans = (plansModule as any).vpsPlans || [];
+    // Access the exported plans
+    const rdpPlans = plansModule.rdpPlans || [];
+    const vpsPlans = plansModule.vpsPlans || [];
     
-    // Define interface for plan objects
-    interface SourcePlan {
-      id: string;
-      name: string;
-      cpu: string;
-      ram: string;
-      storage: string;
-      price: number;
-      bandwidth?: string;
-      os?: string;
-      useCases?: string[];
-      themeColor?: string;
-      label?: string | null;
-    }
+    // Count of plans imported
+    let importedCount = 0;
     
-    interface DbPlan {
-      id: string;
-      category_id: number;
-      name: string;
-      description: string;
-      cpu: string;
-      ram: string;
-      storage: string;
-      bandwidth: string;
-      os?: string;
-      price_pkr: number;
-      is_active: boolean;
-      theme_color?: string;
-      label: string;
-      features: string[];
-    }
-    
-    // Transform RDP plans for database
-    const formattedRdpPlans: DbPlan[] = rdpPlans.map((plan: SourcePlan): DbPlan => ({
-      id: plan.id,
-      category_id: 1, // RDP plans
-      name: plan.name,
-      description: `Premium Remote Desktop Plan with ${plan.cpu} and ${plan.ram}`,
-      cpu: plan.cpu,
-      ram: plan.ram,
-      storage: plan.storage,
-      bandwidth: plan.bandwidth || 'Unmetered',
-      os: plan.os,
-      price_pkr: plan.price,
-      is_active: true,
-      theme_color: plan.themeColor || 'sky',
-      label: plan.label === 'Recommended' || plan.label === 'Most Selling' || plan.label === 'High End' ? 'popular' : '',
-      features: [
-        'Admin Access',
-        'Secure Connection',
-        '24/7 Support',
-        ...(plan.useCases || [])
-      ]
-    }));
-    
-    // Transform VPS plans for database
-    const formattedVpsPlans: DbPlan[] = vpsPlans.map((plan: SourcePlan): DbPlan => ({
-      id: plan.id,
-      category_id: 2, // VPS plans
-      name: plan.name,
-      description: `Enterprise Virtual Private Server with ${plan.cpu} and ${plan.ram}`,
-      cpu: plan.cpu,
-      ram: plan.ram,
-      storage: plan.storage,
-      bandwidth: plan.bandwidth || 'Unmetered',
-      os: plan.os,
-      price_pkr: plan.price,
-      is_active: true,
-      theme_color: plan.themeColor || 'green',
-      label: plan.label === 'Recommended' || plan.label === 'Most Selling' || plan.label === 'High End' ? 'popular' : '',
-      features: [
-        'Root Access',
-        'Full Control',
-        '24/7 Support',
-        ...(plan.useCases || [])
-      ]
-    }));
-    
-    // Combine all plans
-    const allPlans = [...formattedRdpPlans, ...formattedVpsPlans];
-    console.log(`Preparing to import ${allPlans.length} plans...`);
-    
-    // Insert plans into database
-    for (const plan of allPlans) {
-      // Sanitize data to prevent SQL injection
-      const sanitizedDescription = (plan.description || '').replace(/'/g, "''");
-      const sanitizedLabel = (plan.label || '').replace(/'/g, "''");
-      
+    // Import RDP plans
+    for (const plan of rdpPlans) {
       try {
-        // Insert plan
+        // Generate description if not provided
+        const description = `Premium Remote Desktop Plan with ${plan.cpu} and ${plan.ram}`;
+        
+        // Set popular label
+        const isPopular = plan.label === 'Recommended' || plan.label === 'Most Selling';
+        
+        // Insert the plan
         await prisma.$executeRawUnsafe(`
           INSERT INTO plans (
-            id, category_id, name, description, cpu, ram, storage, bandwidth, os, 
-            price_pkr, is_active, theme_color, label, created_at, updated_at
+            id, category_id, name, description, cpu, ram, storage, bandwidth, os,
+            price_pkr, is_active, theme_color, label
           ) VALUES (
-            '${plan.id}', 
-            ${plan.category_id}, 
-            '${plan.name.replace(/'/g, "''")}', 
-            '${sanitizedDescription}', 
-            '${plan.cpu.replace(/'/g, "''")}', 
-            '${plan.ram.replace(/'/g, "''")}', 
-            '${plan.storage.replace(/'/g, "''")}', 
-            '${plan.bandwidth.replace(/'/g, "''")}', 
-            '${(plan.os || '').replace(/'/g, "''")}', 
-            ${plan.price_pkr}, 
-            ${plan.is_active}, 
-            '${(plan.theme_color || 'sky').replace(/'/g, "''")}',
-            '${sanitizedLabel}',
-            CURRENT_TIMESTAMP,
-            CURRENT_TIMESTAMP
+            $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13
           )
-        `);
+        `,
+          plan.id,
+          1, // RDP category
+          plan.name,
+          description,
+          plan.cpu,
+          plan.ram,
+          plan.storage,
+          plan.bandwidth || 'Unmetered',
+          plan.os || 'Windows Server 2022',
+          plan.price,
+          true, // is_active
+          plan.themeColor || 'sky',
+          isPopular ? 'popular' : (plan.label || '')
+        );
         
-        // Insert features for this plan
-        for (const feature of plan.features) {
-          await prisma.$executeRawUnsafe(`
-            INSERT INTO plan_features (id, plan_id, feature)
-            VALUES ('${uuidv4()}', '${plan.id}', '${feature.replace(/'/g, "''")}')
-          `);
+        // Insert features from useCases
+        if (plan.useCases && plan.useCases.length > 0) {
+          for (const useCase of plan.useCases) {
+            const featureId = uuidv4();
+            await prisma.$executeRawUnsafe(`
+              INSERT INTO plan_features (id, plan_id, feature)
+              VALUES ($1, $2, $3)
+            `, featureId, plan.id, useCase);
+          }
+          
+          // Add additional standard features
+          const standardFeatures = [
+            '24/7 Support',
+            'Admin RDP Access',
+            'Fast NVMe Storage',
+            'DDoS Protection',
+            'Multiple Locations'
+          ];
+          
+          for (const feature of standardFeatures) {
+            const featureId = uuidv4();
+            await prisma.$executeRawUnsafe(`
+              INSERT INTO plan_features (id, plan_id, feature)
+              VALUES ($1, $2, $3)
+            `, featureId, plan.id, feature);
+          }
         }
-      } catch (planError) {
-        console.error(`Error inserting plan ${plan.id}:`, planError);
-        // Continue with other plans even if one fails
+        
+        importedCount++;
+      } catch (err) {
+        console.error(`Error importing RDP plan ${plan.id}:`, err);
       }
     }
     
-    console.log(`Successfully imported ${allPlans.length} plans from plans.js`);
-  } catch (error: any) {
-    console.error('Error creating plans from plans.js:', error);
+    // Import VPS plans
+    for (const plan of vpsPlans) {
+      try {
+        // Generate description if not provided
+        const description = `High-Performance VPS with ${plan.cpu} and ${plan.ram}`;
+        
+        // Set popular label
+        const isPopular = plan.label === 'Recommended' || plan.label === 'Most Selling';
+        
+        // Insert the plan
+        await prisma.$executeRawUnsafe(`
+          INSERT INTO plans (
+            id, category_id, name, description, cpu, ram, storage, bandwidth, os,
+            price_pkr, is_active, theme_color, label
+          ) VALUES (
+            $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13
+          )
+        `,
+          plan.id,
+          2, // VPS category
+          plan.name,
+          description,
+          plan.cpu,
+          plan.ram,
+          plan.storage,
+          plan.bandwidth || 'Unmetered',
+          plan.os || 'Windows 10',
+          plan.price,
+          true, // is_active
+          plan.themeColor || 'sky',
+          isPopular ? 'popular' : (plan.label || '')
+        );
+        
+        // Insert features from useCases
+        if (plan.useCases && plan.useCases.length > 0) {
+          for (const useCase of plan.useCases) {
+            const featureId = uuidv4();
+            await prisma.$executeRawUnsafe(`
+              INSERT INTO plan_features (id, plan_id, feature)
+              VALUES ($1, $2, $3)
+            `, featureId, plan.id, useCase);
+          }
+          
+          // Add additional standard features
+          const standardFeatures = [
+            '24/7 Support',
+            'Administrator Access',
+            'High-Speed Network',
+            'DDoS Protection',
+            'Global Datacenters'
+          ];
+          
+          for (const feature of standardFeatures) {
+            const featureId = uuidv4();
+            await prisma.$executeRawUnsafe(`
+              INSERT INTO plan_features (id, plan_id, feature)
+              VALUES ($1, $2, $3)
+            `, featureId, plan.id, feature);
+          }
+        }
+        
+        importedCount++;
+      } catch (err) {
+        console.error(`Error importing VPS plan ${plan.id}:`, err);
+      }
+    }
+    
+    console.log(`Successfully imported ${importedCount} plans`);
+    
+    if (importedCount === 0) {
+      throw new Error('No plans were imported.');
+    }
+  } catch (error) {
+    console.error('Error creating sample plans:', error);
     throw error;
   }
 }
@@ -397,6 +416,7 @@ export async function POST(request: NextRequest) {
       discountedPrice: undefined,
       isPopular: newPlan.label === 'popular',
       active: newPlan.is_active,
+      themeColor: newPlan.theme_color || 'sky',
       specs: {
         cpu: newPlan.cpu,
         ram: newPlan.ram,
@@ -486,6 +506,7 @@ export async function PATCH(request: NextRequest) {
         discountedPrice: updatedPlan.price_pkr * 0.9, // Example discount calculation
         isPopular: updatedPlan.label === 'popular',
         active: updatedPlan.is_active,
+        themeColor: updatedPlan.theme_color || 'sky',
         specs: {
           cpu: updatedPlan.cpu,
           ram: updatedPlan.ram,

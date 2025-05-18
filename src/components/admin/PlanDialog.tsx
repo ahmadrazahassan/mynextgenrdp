@@ -28,6 +28,7 @@ import {
   Globe, Star, Plus, X, Loader2, ServerCog
 } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
+import { cn } from "@/lib/utils";
 
 // Define plan interface
 interface Plan {
@@ -44,7 +45,9 @@ interface Plan {
     storage: string;
     bandwidth: string;
     location: string;
+    os?: string;
   };
+  themeColor?: string;
   duration: number; // in months
   description: string;
   features: string[];
@@ -69,12 +72,15 @@ export function PlanDialog({
   const [name, setName] = useState("");
   const [type, setType] = useState<"rdp" | "vps">("rdp");
   const [price, setPrice] = useState("");
+  const [discountedPrice, setDiscountedPrice] = useState("");
   const [description, setDescription] = useState("");
   const [cpu, setCpu] = useState("");
   const [ram, setRam] = useState("");
   const [storage, setStorage] = useState("");
   const [bandwidth, setBandwidth] = useState("");
   const [location, setLocation] = useState("");
+  const [os, setOs] = useState("");
+  const [themeColor, setThemeColor] = useState("sky");
   const [isPopular, setIsPopular] = useState(false);
   const [isActive, setIsActive] = useState(true);
   const [features, setFeatures] = useState<string[]>([]);
@@ -94,12 +100,15 @@ export function PlanDialog({
       setName(plan.name);
       setType(plan.type);
       setPrice(plan.price.toString());
+      setDiscountedPrice(plan.discountedPrice ? plan.discountedPrice.toString() : "");
       setDescription(plan.description || "");
       setCpu(plan.specs.cpu);
       setRam(plan.specs.ram);
       setStorage(plan.specs.storage);
       setBandwidth(plan.specs.bandwidth);
       setLocation(plan.specs.location);
+      setOs(plan.specs.os || "");
+      setThemeColor(plan.themeColor || "sky");
       setIsPopular(plan.isPopular);
       setIsActive(plan.active);
       setFeatures(plan.features);
@@ -108,12 +117,15 @@ export function PlanDialog({
       setName("");
       setType("rdp");
       setPrice("");
+      setDiscountedPrice("");
       setDescription("");
       setCpu("");
       setRam("");
       setStorage("");
       setBandwidth("Unmetered");
-      setLocation("");
+      setLocation("US East");
+      setOs(type === "rdp" ? "Windows Server 2022" : "Windows 10");
+      setThemeColor("sky");
       setIsPopular(false);
       setIsActive(true);
       setFeatures([]);
@@ -124,7 +136,7 @@ export function PlanDialog({
     setErrors({});
     setActiveTab("basic");
     setApiError(null);
-  }, [open, plan]);
+  }, [open, plan, type]);
 
   // Handle adding a new feature
   const handleAddFeature = () => {
@@ -178,6 +190,10 @@ export function PlanDialog({
       newErrors.location = "Location is required";
     }
     
+    if (!os.trim()) {
+      newErrors.os = "OS is required";
+    }
+    
     if (features.length === 0) {
       newErrors.features = "At least one feature is required";
     }
@@ -201,7 +217,8 @@ export function PlanDialog({
         errors.ram || 
         errors.storage || 
         errors.bandwidth || 
-        errors.location
+        errors.location ||
+        errors.os
       ) {
         setActiveTab("specs");
       } else {
@@ -216,14 +233,17 @@ export function PlanDialog({
       name,
       type,
       price: Number(price),
+      discountedPrice: discountedPrice ? Number(discountedPrice) : undefined,
       isPopular,
       active: isActive,
+      themeColor,
       specs: {
         cpu,
         ram,
         storage,
         bandwidth,
-        location
+        location,
+        os
       },
       description,
       features
@@ -297,16 +317,16 @@ export function PlanDialog({
         )}
 
         <Tabs defaultValue="basic" value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-3 mb-4 bg-gray-100 border border-gray-200">
+          <TabsList className="grid grid-cols-4 w-full mb-4">
             <TabsTrigger 
               value="basic" 
               className={`${errors.name || errors.price || errors.description ? "text-red-600" : ""} data-[state=active]:bg-blue-600 data-[state=active]:text-white text-gray-700`}
             >
-              Basic Info
+              Basic
             </TabsTrigger>
             <TabsTrigger 
               value="specs" 
-              className={`${errors.cpu || errors.ram || errors.storage || errors.bandwidth || errors.location ? "text-red-600" : ""} data-[state=active]:bg-blue-600 data-[state=active]:text-white text-gray-700`}
+              className={`${errors.cpu || errors.ram || errors.storage || errors.bandwidth || errors.location || errors.os ? "text-red-600" : ""} data-[state=active]:bg-blue-600 data-[state=active]:text-white text-gray-700`}
             >
               Specifications
             </TabsTrigger>
@@ -315,6 +335,12 @@ export function PlanDialog({
               className={`${errors.features ? "text-red-600" : ""} data-[state=active]:bg-blue-600 data-[state=active]:text-white text-gray-700`}
             >
               Features
+            </TabsTrigger>
+            <TabsTrigger 
+              value="appearance" 
+              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-gray-700"
+            >
+              Appearance
             </TabsTrigger>
           </TabsList>
           
@@ -356,41 +382,65 @@ export function PlanDialog({
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="price" className="text-gray-700">
-                  Price (PKR) <span className="text-red-600">*</span>
+              <div className="space-y-2">
+                <Label htmlFor="price" className={errors.price ? "text-red-500" : ""}>
+                  Price (PKR)
                 </Label>
                 <Input
                   id="price"
-                  placeholder="e.g. 15000"
+                  type="number"
+                  placeholder="e.g. 1999"
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}
-                  className={`bg-white border-gray-300 text-gray-900 focus:border-blue-500 ${errors.price ? "border-red-500" : ""}`}
+                  className={errors.price ? "border-red-500 ring-red-500" : ""}
                 />
                 {errors.price && (
-                  <p className="text-red-600 text-sm">{errors.price}</p>
+                  <p className="text-sm text-red-500 mt-1">{errors.price}</p>
                 )}
               </div>
               
-              <div className="grid gap-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="isPopular" className="text-gray-700">Mark as Popular</Label>
-                  <Switch
-                    id="isPopular"
-                    checked={isPopular}
-                    onCheckedChange={setIsPopular}
-                    className="data-[state=checked]:bg-amber-500"
-                  />
-                </div>
-                <div className="flex items-center justify-between mt-2">
-                  <Label htmlFor="isActive" className="text-gray-700">Active Plan</Label>
-                  <Switch
-                    id="isActive"
-                    checked={isActive}
-                    onCheckedChange={setIsActive}
-                    className="data-[state=checked]:bg-green-600"
-                  />
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="discountedPrice" className="flex items-center justify-between">
+                  Discounted Price (PKR)
+                  <span className="text-xs text-gray-500">(Optional)</span>
+                </Label>
+                <Input
+                  id="discountedPrice"
+                  type="number"
+                  placeholder="e.g. 1799"
+                  value={discountedPrice}
+                  onChange={(e) => setDiscountedPrice(e.target.value)}
+                />
+                {discountedPrice && Number(discountedPrice) >= Number(price) ? (
+                  <p className="text-sm text-amber-600 mt-1">
+                    Discount price should be lower than regular price
+                  </p>
+                ) : discountedPrice ? (
+                  <p className="text-xs text-gray-500 mt-1">
+                    Savings: {price && discountedPrice ? `${Math.round((1 - Number(discountedPrice) / Number(price)) * 100)}%` : '0%'}
+                  </p>
+                ) : null}
+              </div>
+            </div>
+            
+            <div className="grid gap-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="isPopular" className="text-gray-700">Mark as Popular</Label>
+                <Switch
+                  id="isPopular"
+                  checked={isPopular}
+                  onCheckedChange={setIsPopular}
+                  className="data-[state=checked]:bg-amber-500"
+                />
+              </div>
+              <div className="flex items-center justify-between mt-2">
+                <Label htmlFor="isActive" className="text-gray-700">Active Plan</Label>
+                <Switch
+                  id="isActive"
+                  checked={isActive}
+                  onCheckedChange={setIsActive}
+                  className="data-[state=checked]:bg-green-600"
+                />
               </div>
             </div>
             
@@ -498,6 +548,49 @@ export function PlanDialog({
                 <p className="text-red-600 text-sm">{errors.location}</p>
               )}
             </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="os" className={cn(errors.os ? "text-red-500" : "")}>
+                Operating System
+              </Label>
+              <Select 
+                value={os} 
+                onValueChange={setOs}
+              >
+                <SelectTrigger 
+                  id="os" 
+                  className={cn(
+                    "w-full", 
+                    errors.os ? "border-red-500 ring-red-500" : ""
+                  )}
+                >
+                  <SelectValue placeholder="Select OS" />
+                </SelectTrigger>
+                <SelectContent>
+                  {type === 'rdp' ? (
+                    <>
+                      <SelectItem value="Windows Server 2022">Windows Server 2022</SelectItem>
+                      <SelectItem value="Windows Server 2019">Windows Server 2019</SelectItem>
+                      <SelectItem value="Windows Server 2016">Windows Server 2016</SelectItem>
+                      <SelectItem value="Windows 11">Windows 11</SelectItem>
+                      <SelectItem value="Windows 10">Windows 10</SelectItem>
+                    </>
+                  ) : (
+                    <>
+                      <SelectItem value="Windows 10">Windows 10</SelectItem>
+                      <SelectItem value="Windows Server 2022">Windows Server 2022</SelectItem>
+                      <SelectItem value="Windows 11">Windows 11</SelectItem>
+                      <SelectItem value="Ubuntu 22.04">Ubuntu 22.04</SelectItem>
+                      <SelectItem value="Debian 11">Debian 11</SelectItem>
+                      <SelectItem value="CentOS 8">CentOS 8</SelectItem>
+                    </>
+                  )}
+                </SelectContent>
+              </Select>
+              {errors.os && (
+                <p className="text-sm text-red-500 mt-1">{errors.os}</p>
+              )}
+            </div>
           </TabsContent>
           
           <TabsContent value="features" className="space-y-4 mt-2">
@@ -559,6 +652,59 @@ export function PlanDialog({
               </div>
             </div>
           </TabsContent>
+          
+          <TabsContent value="appearance" className="space-y-4">
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-base font-medium mb-2">Theme Color</h3>
+                <div className="grid grid-cols-5 gap-2">
+                  {['sky', 'blue', 'indigo', 'purple', 'green', 'emerald', 'teal', 'orange', 'amber', 'red'].map((color) => (
+                    <div
+                      key={color}
+                      className={`h-10 rounded-md cursor-pointer transform transition-all 
+                        ${themeColor === color ? 'ring-2 ring-blue-600 scale-110' : 'hover:scale-105'}`}
+                      style={{ 
+                        background: getThemeGradient(color),
+                      }}
+                      onClick={() => setThemeColor(color)}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="isPopular" className="cursor-pointer">
+                    Mark as Popular
+                  </Label>
+                  <Switch
+                    id="isPopular"
+                    checked={isPopular}
+                    onCheckedChange={setIsPopular}
+                  />
+                </div>
+                <p className="text-sm text-gray-500">
+                  Popular plans get highlighted on the pricing page
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="isActive" className="cursor-pointer">
+                    Active
+                  </Label>
+                  <Switch
+                    id="isActive"
+                    checked={isActive}
+                    onCheckedChange={setIsActive}
+                  />
+                </div>
+                <p className="text-sm text-gray-500">
+                  Inactive plans won't be visible to customers
+                </p>
+              </div>
+            </div>
+          </TabsContent>
         </Tabs>
 
         <DialogFooter className="mt-4">
@@ -588,4 +734,21 @@ export function PlanDialog({
       </DialogContent>
     </Dialog>
   );
+}
+
+function getThemeGradient(color: string): string {
+  const colors: Record<string, string> = {
+    sky: 'linear-gradient(135deg, #0ea5e9, #38bdf8)',
+    blue: 'linear-gradient(135deg, #2563eb, #3b82f6)',
+    indigo: 'linear-gradient(135deg, #4f46e5, #6366f1)',
+    purple: 'linear-gradient(135deg, #7e22ce, #a855f7)',
+    green: 'linear-gradient(135deg, #16a34a, #4ade80)',
+    emerald: 'linear-gradient(135deg, #059669, #34d399)',
+    teal: 'linear-gradient(135deg, #0d9488, #2dd4bf)',
+    orange: 'linear-gradient(135deg, #ea580c, #fb923c)',
+    amber: 'linear-gradient(135deg, #d97706, #fbbf24)',
+    red: 'linear-gradient(135deg, #dc2626, #ef4444)'
+  };
+  
+  return colors[color] || colors.sky;
 } 

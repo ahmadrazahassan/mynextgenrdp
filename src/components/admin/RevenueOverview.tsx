@@ -85,17 +85,12 @@ export default function RevenueOverview() {
 
   // Format currency
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-PK', {
-      style: 'currency',
-      currency: 'PKR',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(value);
+    return `Rs ${value.toLocaleString()}`;
   };
 
   // Format percentage
   const formatPercentage = (value: number) => {
-    return value.toFixed(1) + '%';
+    return `${value.toFixed(1)}%`;
   };
 
   // Load skeleton
@@ -217,7 +212,7 @@ export default function RevenueOverview() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-3xl font-bold">
-                    {formatCurrency(data.revenueMetrics.totalRevenue)}
+                    Rs {data.revenueMetrics.totalRevenue.toLocaleString()}
                   </div>
                   <p className="text-sm text-gray-500 mt-1">Lifetime</p>
                 </CardContent>
@@ -230,7 +225,7 @@ export default function RevenueOverview() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-3xl font-bold text-green-700">
-                    {formatCurrency(data.revenueMetrics.ytdRevenue)}
+                    Rs {data.revenueMetrics.ytdRevenue.toLocaleString()}
                   </div>
                   <p className="text-sm text-gray-500 mt-1">Current year</p>
                 </CardContent>
@@ -242,13 +237,19 @@ export default function RevenueOverview() {
                   <CardTitle className="text-sm font-medium text-gray-500">Monthly Growth</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className={cn("text-3xl font-bold flex items-center gap-1", momGrowthColor)}>
+                  <div className={cn("text-3xl font-bold flex items-center", momGrowthColor)}>
                     {Math.abs(data.revenueMetrics.momGrowth).toFixed(1)}%
-                    <MomGrowthIcon className="h-5 w-5" />
+                    <span className="ml-2">
+                      {data.revenueMetrics.momGrowth >= 0 ? (
+                        <ArrowUpRight className="h-5 w-5" />
+                      ) : (
+                        <ArrowDownRight className="h-5 w-5" />
+                      )}
+                    </span>
                   </div>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="text-sm text-gray-500">Last month: {formatCurrency(data.revenueMetrics.lastMonth)}</span>
-                  </div>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Last month: {formatCurrency(data.revenueMetrics.lastMonth)}
+                  </p>
                 </CardContent>
               </Card>
               
@@ -259,7 +260,7 @@ export default function RevenueOverview() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-3xl font-bold text-purple-700">
-                    {formatCurrency(data.revenueMetrics.annualRunRate)}
+                    Rs {data.revenueMetrics.annualRunRate.toLocaleString()}
                   </div>
                   <p className="text-sm text-gray-500 mt-1">Projected</p>
                 </CardContent>
@@ -273,8 +274,8 @@ export default function RevenueOverview() {
                   <CardTitle className="text-base font-medium">Monthly Revenue</CardTitle>
                   <CardDescription>Revenue trend for the last 12 months</CardDescription>
                 </div>
-                <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                  {formatCurrency(data.revenueMetrics.thisMonth)} This Month
+                <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 whitespace-nowrap">
+                  Rs {data.revenueMetrics.thisMonth.toLocaleString()} This Month
                 </Badge>
               </CardHeader>
               <CardContent className="h-[280px] relative">
@@ -287,26 +288,26 @@ export default function RevenueOverview() {
                           // Find maximum revenue for scaling
                           const maxRevenue = Math.max(...data.monthlyRevenue.map(m => m.revenue));
                           // Calculate bar height as percentage of max
-                          const heightPercentage = (month.revenue / maxRevenue) * 100;
+                          const heightPercentage = maxRevenue > 0 ? (month.revenue / maxRevenue) * 100 : 0;
                           // Determine if this is the current month
                           const isCurrentMonth = index === data.monthlyRevenue.length - 1;
                           
                           return (
-                            <div key={month.month} className="flex flex-col items-center flex-1">
+                            <div key={month.month} className="flex flex-col items-center" style={{ width: `${100 / data.monthlyRevenue.length - 1}%` }}>
                               <div 
                                 className={cn(
-                                  "w-full rounded-t-sm transition-all duration-300 relative group",
+                                  "w-full min-w-[10px] rounded-t-sm transition-all duration-300 relative group",
                                   isCurrentMonth ? "bg-blue-600" : "bg-blue-400"
                                 )}
-                                style={{ height: `${heightPercentage}%` }}
+                                style={{ height: `${Math.max(heightPercentage, 2)}%` }}
                               >
                                 {/* Tooltip */}
-                                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-900 text-white text-xs rounded py-1 px-2 whitespace-nowrap z-10">
+                                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-900 text-white text-xs rounded py-1 px-2 whitespace-nowrap z-10 shadow-lg">
                                   <div className="font-bold">{formatCurrency(month.revenue)}</div>
                                   <div className="text-gray-300 text-[10px]">{month.orderCount} orders</div>
                                 </div>
                               </div>
-                              <div className="text-xs mt-2 text-gray-600 -rotate-45 origin-top-left translate-x-3">
+                              <div className="text-xs mt-2 text-gray-600 w-full text-center overflow-hidden text-ellipsis px-1">
                                 {month.month}
                               </div>
                             </div>
@@ -337,7 +338,7 @@ export default function RevenueOverview() {
                       <Badge 
                         variant="outline" 
                         className={cn(
-                          "text-xs",
+                          "text-xs font-semibold",
                           data.revenueMetrics.momGrowth >= 0 
                             ? "bg-green-50 text-green-700 border-green-200" 
                             : "bg-red-50 text-red-700 border-red-200"
@@ -526,8 +527,8 @@ export default function RevenueOverview() {
                           ></div>
                           <span className="text-sm font-medium truncate max-w-[200px]">{plan.planName}</span>
                         </div>
-                        <span className="text-sm font-medium">
-                          {formatCurrency(plan.revenue)}
+                        <span className="text-sm font-medium whitespace-nowrap">
+                          Rs {plan.revenue.toLocaleString()}
                         </span>
                       </div>
                       <Progress 
@@ -572,9 +573,9 @@ export default function RevenueOverview() {
                       <tr key={plan.planName} className="border-b border-gray-100 hover:bg-gray-50">
                         <td className="py-3 font-medium">{plan.planName}</td>
                         <td className="py-3 text-right">{plan.orderCount}</td>
-                        <td className="py-3 text-right font-medium">{formatCurrency(plan.revenue)}</td>
-                        <td className="py-3 text-right">
-                          {formatCurrency(plan.orderCount > 0 ? plan.revenue / plan.orderCount : 0)}
+                        <td className="py-3 text-right font-medium whitespace-nowrap">Rs {plan.revenue.toLocaleString()}</td>
+                        <td className="py-3 text-right whitespace-nowrap">
+                          Rs {(plan.orderCount > 0 ? plan.revenue / plan.orderCount : 0).toLocaleString()}
                         </td>
                         <td className="py-3 text-right">
                           <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
@@ -590,8 +591,8 @@ export default function RevenueOverview() {
                       <td className="py-3 text-right font-bold">
                         {data.planRevenueData.reduce((sum, plan) => sum + plan.orderCount, 0)}
                       </td>
-                      <td className="py-3 text-right font-bold">
-                        {formatCurrency(data.planRevenueData.reduce((sum, plan) => sum + plan.revenue, 0))}
+                      <td className="py-3 text-right font-bold whitespace-nowrap">
+                        Rs {data.planRevenueData.reduce((sum, plan) => sum + plan.revenue, 0).toLocaleString()}
                       </td>
                       <td className="py-3 text-right"></td>
                       <td className="py-3 text-right font-bold">100%</td>

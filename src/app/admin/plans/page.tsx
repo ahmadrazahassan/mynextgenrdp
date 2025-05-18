@@ -86,7 +86,9 @@ interface Plan {
     storage: string;
     bandwidth: string;
     location: string;
+    os?: string;
   };
+  themeColor?: string;
   duration: number; // in months
   description: string;
   features: string[];
@@ -381,6 +383,24 @@ const PlansPage: React.FC = () => {
       setFilteredPlans(result);
     }
   }, [searchTerm, typeFilter, statusFilter, plans]);
+
+  // Helper function for theme gradients
+  const getThemeGradient = (color: string): string => {
+    const colors: Record<string, string> = {
+      sky: 'linear-gradient(135deg, #0ea5e9, #38bdf8)',
+      blue: 'linear-gradient(135deg, #2563eb, #3b82f6)',
+      indigo: 'linear-gradient(135deg, #4f46e5, #6366f1)',
+      purple: 'linear-gradient(135deg, #7e22ce, #a855f7)',
+      green: 'linear-gradient(135deg, #16a34a, #4ade80)',
+      emerald: 'linear-gradient(135deg, #059669, #34d399)',
+      teal: 'linear-gradient(135deg, #0d9488, #2dd4bf)',
+      orange: 'linear-gradient(135deg, #ea580c, #fb923c)',
+      amber: 'linear-gradient(135deg, #d97706, #fbbf24)',
+      red: 'linear-gradient(135deg, #dc2626, #ef4444)'
+    };
+    
+    return colors[color] || colors.sky;
+  };
 
   // If checking authentication, show loading spinner
   if (isAuthChecking) {
@@ -747,22 +767,27 @@ const PlansPage: React.FC = () => {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <Badge 
-                              variant="outline" 
-                              className={cn(
-                                "shadow-sm",
-                                plan.type === 'rdp' 
-                                  ? 'bg-gradient-to-r from-blue-50 to-blue-100 border-blue-200 text-blue-700' 
-                                  : 'bg-gradient-to-r from-purple-50 to-purple-100 border-purple-200 text-purple-700'
+                            <div className="flex items-center gap-2">
+                              <Badge 
+                                variant="outline"
+                                className={cn(
+                                  "shadow-sm flex items-center gap-1",
+                                  plan.type === 'rdp' 
+                                    ? 'bg-blue-50 border-blue-200 text-blue-700' 
+                                    : 'bg-purple-50 border-purple-200 text-purple-700'
+                                )}
+                              >
+                                {plan.type === 'rdp' ? <Monitor className="h-3.5 w-3.5" /> : <Server className="h-3.5 w-3.5" />}
+                                {plan.type.toUpperCase()}
+                              </Badge>
+                              {plan.themeColor && (
+                                <div 
+                                  className="h-3.5 w-3.5 rounded-full" 
+                                  style={{ background: getThemeGradient(plan.themeColor) }}
+                                  title={`${plan.themeColor.charAt(0).toUpperCase() + plan.themeColor.slice(1)} theme`}
+                                />
                               )}
-                            >
-                              {plan.type === 'rdp' ? (
-                                <Monitor className="h-3 w-3 mr-1" />
-                              ) : (
-                                <Server className="h-3 w-3 mr-1" />
-                              )}
-                              {plan.type.toUpperCase()}
-                            </Badge>
+                            </div>
                           </TableCell>
                           <TableCell>
                             <div className="font-medium text-gray-900">{formatPrice(plan.price)}</div>
@@ -774,22 +799,30 @@ const PlansPage: React.FC = () => {
                             )}
                           </TableCell>
                           <TableCell>
-                            <div className="flex flex-col gap-1">
-                              <div className="flex items-center text-xs text-gray-700">
-                                <Cpu className="h-3.5 w-3.5 text-blue-500 mr-1" />
-                                <span>{plan.specs.cpu}</span>
+                            <div className="flex flex-col space-y-1">
+                              <div className="flex items-center gap-1.5">
+                                <Cpu className="h-3.5 w-3.5 text-blue-600" />
+                                <span className="text-sm">
+                                  {plan.specs.cpu}
+                                </span>
                               </div>
-                              <div className="flex items-center text-xs text-gray-700">
-                                <MemoryStick className="h-3.5 w-3.5 text-blue-500 mr-1" />
-                                <span>{plan.specs.ram}</span>
+                              <div className="flex items-center gap-1.5">
+                                <MemoryStick className="h-3.5 w-3.5 text-green-600" />
+                                <span className="text-sm">
+                                  {plan.specs.ram}
+                                </span>
                               </div>
-                              <div className="flex items-center text-xs text-gray-700">
-                                <HardDrive className="h-3.5 w-3.5 text-blue-500 mr-1" />
-                                <span>{plan.specs.storage}</span>
+                              <div className="flex items-center gap-1.5">
+                                <HardDrive className="h-3.5 w-3.5 text-purple-600" />
+                                <span className="text-sm">
+                                  {plan.specs.storage}
+                                </span>
                               </div>
-                              <div className="flex items-center text-xs text-gray-700">
-                                <Globe className="h-3.5 w-3.5 text-blue-500 mr-1" />
-                                <span>{plan.specs.location}</span>
+                              <div className="flex items-center gap-1.5">
+                                <Globe className="h-3.5 w-3.5 text-amber-600" />
+                                <span className="text-sm">
+                                  {plan.specs.os || (plan.type === 'rdp' ? 'Windows Server' : 'Windows 10')}
+                                </span>
                               </div>
                             </div>
                           </TableCell>

@@ -36,12 +36,14 @@ export async function GET(
       discountedPrice: plan.price_pkr * 0.9, // Example discount calculation, should come from DB
       isPopular: plan.label === 'popular',
       active: plan.is_active,
+      themeColor: plan.theme_color || 'sky',
       specs: {
         cpu: plan.cpu,
         ram: plan.ram,
         storage: plan.storage,
         bandwidth: plan.bandwidth,
-        location: plan.os || 'Default Location'
+        location: plan.category_id === 1 ? 'US East' : 'EU Central', // Default location
+        os: plan.os || (plan.category_id === 1 ? 'Windows Server 2022' : 'Windows 10')
       },
       duration: 1, // Default to 1 month
       description: plan.description || '',
@@ -85,7 +87,8 @@ export async function PUT(
       isPopular,
       active,
       description,
-      features
+      features,
+      themeColor
     } = body;
     
     // Update plan
@@ -97,10 +100,11 @@ export async function PUT(
       ram: specs?.ram,
       storage: specs?.storage,
       bandwidth: specs?.bandwidth,
-      os: specs?.location,
+      os: specs?.os,
       price_pkr: price,
       is_active: active,
       label: isPopular ? 'popular' : null,
+      theme_color: themeColor,
       features
     });
     
@@ -120,12 +124,14 @@ export async function PUT(
       discountedPrice: updatedPlan.price_pkr * 0.9, // Example discount calculation, should come from DB
       isPopular: updatedPlan.label === 'popular',
       active: updatedPlan.is_active,
+      themeColor: updatedPlan.theme_color || 'sky',
       specs: {
         cpu: updatedPlan.cpu,
         ram: updatedPlan.ram,
         storage: updatedPlan.storage,
         bandwidth: updatedPlan.bandwidth,
-        location: updatedPlan.os || 'Default Location'
+        location: updatedPlan.category_id === 1 ? 'US East' : 'EU Central', // Default location
+        os: updatedPlan.os || (updatedPlan.category_id === 1 ? 'Windows Server 2022' : 'Windows 10')
       },
       duration: 1,
       description: updatedPlan.description || '',
