@@ -107,3 +107,44 @@ export function toTitleCase(str: string): string {
     txt => txt.charAt(0).toUpperCase() + txt.substring(1).toLowerCase()
   );
 }
+
+/**
+ * Validate a promo code against the API
+ * @param code The promo code to validate
+ * @param planId Optional plan ID to check compatibility
+ * @returns Object with validation result and discount information
+ */
+export async function validatePromoCode(code: string, planId?: string) {
+  try {
+    const response = await fetch('/api/promo/validate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ code, planId }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to validate promo code');
+    }
+
+    return await response.json();
+  } catch (error: any) {
+    console.error('Error validating promo code:', error);
+    return {
+      valid: false,
+      message: error.message || 'Failed to validate promo code',
+    };
+  }
+}
+
+/**
+ * Calculate the discounted price after applying a promo code
+ * @param price The original price
+ * @param discountPercentage The percentage discount to apply
+ * @returns The discounted price
+ */
+export function calculateDiscountedPrice(price: number, discountPercentage: number): number {
+  const discount = calculateDiscount(price, discountPercentage);
+  return price - discount;
+}

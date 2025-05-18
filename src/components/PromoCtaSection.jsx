@@ -34,7 +34,7 @@ const FloatingShape = ({ className, duration, delay, size }) => (
     />
 );
 
-const PromoCtaSection = ({ promoCode = "RDP30", discount = "30%" }) => {
+const PromoCtaSection = ({ promoCode = "NEXTGEN20", discount = "20%" }) => {
   return (
     // Light background for the section
     <section className="relative font-sans bg-gradient-to-b from-gray-50/50 via-white to-gray-50/50 py-24 sm:py-32 overflow-hidden isolate">

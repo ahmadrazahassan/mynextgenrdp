@@ -649,7 +649,7 @@ export default function VpsPage() {
       </section>
 
       {/* Promo CTA Section */}
-      <PromoCtaSection promoCode="VPS20" discount="20%" />
+      <PromoCtaSection promoCode="NEXTGEN20" discount="20%" />
 
       {/* Testimonials section */}
       <section className="py-20 bg-gradient-to-b from-white to-gray-50">

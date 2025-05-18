@@ -198,8 +198,8 @@ const AdminProfile = ({ name, role }) => {
 
 // Main Hero Section Component
 const HeroSection = () => {
-  const promoCode = "NEXTGEN30";
-  const discount = "30%";
+  const promoCode = "NEXTGEN20";
+  const discount = "20%";
   
   // Animation variants for staggered entrance
   const containerVariants = {

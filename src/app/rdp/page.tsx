@@ -647,7 +647,7 @@ export default function RdpPage() {
       </section>
 
       {/* Promo CTA Section */}
-      <PromoCtaSection promoCode="RDP20" discount="20%" />
+      <PromoCtaSection promoCode="NEXTGEN20" discount="20%" />
 
       {/* Comparison Table Section */}
       <section className="py-24 bg-white relative">

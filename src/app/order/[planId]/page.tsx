@@ -3,6 +3,11 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { AlertCircle, CheckCircle2, Loader2, ArrowLeft, ArrowRight, Info, UserCheck, UserPlus, CreditCard, ShieldCheck, CheckCircle } from 'lucide-react'; // Example icons
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 
 // Providers & Hooks
 import { useAuth } from '@/components/providers/AuthProvider';
@@ -19,8 +24,6 @@ import PaymentMethodSelector from '@/components/order/PaymentMethodSelector';
 import PaymentProofUpload from '@/components/order/PaymentProofUpload';
 import ReviewSummary from '@/components/order/ReviewSummary'; // Import ReviewSummary
 import HowToOrderGuide from '@/components/order/HowToOrderGuide'; // Import the static guide
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'; // Assuming Card component for structure
 
 // Define the Plan interface based on your plans.js structure
 interface Plan {
@@ -120,25 +123,42 @@ export default function OrderPage() {
 
   const handleApplyPromoCode = async () => {
     if (!promoCode.trim()) return;
+    
     setIsApplyingPromo(true);
     setPromoCodeMessage(null);
-    // Simulate API call for promo code validation
-    await new Promise(resolve => setTimeout(resolve, 1000)); 
-    // Replace with actual API call: POST /api/promo/validate { code: promoCode, planId: plan?.id }
-    // For now, let's assume a dummy validation
-    if (promoCode === 'HEAVYDUTY10') {
-      setPromoCodeMessage('Promo code HEAVYDUTY10 applied! 10% discount.');
-      setPromoDiscount(plan ? plan.price * 0.10 : 0); // Example 10% discount
-    } else if (promoCode === 'INVALID5'){
-      setPromoCodeMessage('Error: Invalid or expired promo code.');
+    
+    try {
+      // Call the promo code validation API directly
+      const response = await fetch('/api/promo/validate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ code: promoCode, planId: plan?.id }),
+      });
+      
+      const result = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to validate promo code');
+      }
+      
+      if (result.valid) {
+        setPromoCodeMessage(result.message);
+        // Calculate the discount amount directly
+        const discountAmount = plan ? Math.round((plan.price * result.discount) / 100) : 0;
+        setPromoDiscount(discountAmount);
+      } else {
+        setPromoCodeMessage(result.message || 'Invalid or expired promo code.');
+        setPromoDiscount(0);
+      }
+    } catch (error: any) {
+      console.error('Error validating promo code:', error);
+      setPromoCodeMessage(`Error: ${error.message || 'Failed to validate promo code'}`);
       setPromoDiscount(0);
-    } else {
-      setPromoCodeMessage('Validating...'); // Should be handled by actual API
-      await new Promise(resolve => setTimeout(resolve, 500));
-      setPromoCodeMessage('Info: Promo code not recognized for this plan.');
-      setPromoDiscount(0);
+    } finally {
+      setIsApplyingPromo(false);
     }
-    setIsApplyingPromo(false);
   };
   
   const currentStepIndex = orderSteps.findIndex(s => s.id === currentStep);
