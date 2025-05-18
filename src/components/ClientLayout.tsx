@@ -3,6 +3,7 @@
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import WhatsAppButton from '@/components/WhatsAppButton';
+import TawkToChat from '@/components/TawkToChat';
 import { ToastProvider as ShadcnToastProvider } from "@/components/ui/toast";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from '@/components/providers/AuthProvider';
@@ -18,6 +19,7 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
         </main>
         <Footer />
         <WhatsAppButton />
+        <TawkToChat />
         <Toaster />
       </ShadcnToastProvider>
     </AuthProvider>

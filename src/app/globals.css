@@ -137,4 +137,14 @@
   .animate-float-fast {
     animation: float-fast 3s ease-in-out infinite;
   }
+
+  /* Shine animation for buttons */
+  @keyframes shine {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(100%);
+    }
+  }
 }

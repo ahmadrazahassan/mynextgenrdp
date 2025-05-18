@@ -82,7 +82,11 @@ module.exports = {
         'float-fast': {
           '0%, 100%': { transform: 'translateY(0px) translateX(0px)' },
           '50%': { transform: 'translateY(-5px) translateX(5px)' },
-        }
+        },
+        shine: {
+          'from': { transform: 'translateX(-100%)' },
+          'to': { transform: 'translateX(100%)' },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -91,11 +95,19 @@ module.exports = {
         'float-slow': 'float-slow 6s ease-in-out infinite',
         'float-medium': 'float-medium 4s ease-in-out infinite',
         'float-fast': 'float-fast 3s ease-in-out infinite',
+        'shine': 'shine 1.5s ease-in-out infinite',
       },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
         'gradient-conic':
           'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
+      },
+      backgroundSize: {
+        'size-200': '200% 100%',
+      },
+      backgroundPosition: {
+        'pos-0': '0% 0%',
+        'pos-100': '100% 0%',
       },
     },
   },

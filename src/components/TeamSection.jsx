@@ -24,9 +24,9 @@ const teamMembers = [
     name: "Ahmad Ch.",
     role: "CEO & CTO",
     image: "https://i.imgur.com/8bAAGUK.png",
-    bio: "With over 15 years of experience in cloud infrastructure and virtualization technology, Ahmad leads NextGenRDP's strategic vision and technical innovation. He has pioneered several breakthroughs in virtual desktop optimization and secure remote access solutions that have become industry standards.",
+    bio: "With over 5 years of experience in cloud infrastructure and virtualization technology, Ahmad leads NextGenRDP's strategic vision and technical innovation. He has pioneered several breakthroughs in virtual desktop optimization and secure remote access solutions that have become industry standards.",
     expertise: ["Infrastructure Architecture", "Enterprise Security"],
-    achievements: { value: "15+", label: "Years Experience" },
+    achievements: { value: "5+", label: "Years Experience" },
     social: {
       linkedin: "https://linkedin.com/in/example",
       twitter: "https://twitter.com/example",

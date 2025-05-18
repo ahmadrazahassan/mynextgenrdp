@@ -9,10 +9,8 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-hot-toast";
 import { useSession } from "@/components/providers/SessionProvider";
-import { FiMail, FiLock, FiEye, FiEyeOff, FiUser, FiGithub, FiTwitter } from "react-icons/fi";
-import { FcGoogle } from "react-icons/fc";
-import { FaFacebook } from "react-icons/fa";
-import { RiShieldKeyholeLine } from "react-icons/ri";
+import { FiMail, FiLock, FiEye, FiEyeOff, FiUser, FiCheck } from "react-icons/fi";
+import { RiShieldKeyholeLine, RiLockPasswordLine } from "react-icons/ri";
 import { HiOutlineDocumentCheck } from "react-icons/hi2";
 
 // Registration form schema with validation
@@ -242,35 +240,31 @@ export default function RegisterPage() {
     }
   };
 
-  const handleSocialSignup = (provider: string) => {
-    toast.loading(`Signing up with ${provider}...`);
-    // In a real implementation, this would redirect to the OAuth provider
-    setTimeout(() => {
-      toast.dismiss();
-      toast.success(`${provider} signup coming soon!`);
-    }, 1500);
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 to-blue-100 flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-indigo-200 via-purple-100 to-blue-200 flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8">
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="w-full max-w-md"
+        className="w-full max-w-md relative"
       >
-        <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl overflow-hidden">
+        {/* Decorative elements */}
+        <div className="absolute -top-12 -left-12 w-24 h-24 bg-purple-500/20 rounded-full blur-xl"></div>
+        <div className="absolute -bottom-16 -right-8 w-32 h-32 bg-indigo-500/20 rounded-full blur-xl"></div>
+        
+        <div className="relative bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden border border-indigo-100">
+          <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-indigo-600 via-purple-500 to-indigo-700"></div>
           <div className="p-8">
             <div className="text-center mb-8">
               <motion.div
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ delay: 0.2, duration: 0.5 }}
-                className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white mb-4"
+                className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-r from-indigo-600 via-purple-500 to-indigo-700 text-white mb-4 shadow-xl"
               >
-                <RiShieldKeyholeLine className="w-8 h-8" />
+                <RiShieldKeyholeLine className="w-10 h-10" />
               </motion.div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">Create account</h1>
+              <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600 mb-2">Create account</h1>
               <p className="text-gray-600">Join our community today</p>
             </div>
             
@@ -279,28 +273,32 @@ export default function RegisterPage() {
               <div className="mb-8">
                 <div className="flex justify-between items-center">
                   <div className="flex items-center">
-                    <div className={`flex items-center justify-center w-8 h-8 rounded-full ${
-                      currentStep >= 1 ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-500'
+                    <div className={`flex items-center justify-center w-10 h-10 rounded-full shadow-md ${
+                      currentStep >= 1 
+                        ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white' 
+                        : 'bg-gray-200 text-gray-500'
                     }`}>
-                      1
+                      {currentStep > 1 ? <FiCheck className="w-5 h-5" /> : "1"}
                     </div>
-                    <div className={`ml-2 text-sm ${
-                      currentStep >= 1 ? 'text-indigo-600 font-medium' : 'text-gray-500'
+                    <div className={`ml-2 text-sm font-medium ${
+                      currentStep >= 1 ? 'text-indigo-600' : 'text-gray-500'
                     }`}>
                       Account
                     </div>
                   </div>
-                  <div className={`flex-grow mx-4 h-1 ${
-                    currentStep >= 2 ? 'bg-indigo-600' : 'bg-gray-200'
+                  <div className={`flex-grow mx-4 h-1.5 rounded-full ${
+                    currentStep >= 2 ? 'bg-gradient-to-r from-indigo-600 to-purple-600' : 'bg-gray-200'
                   }`}></div>
                   <div className="flex items-center">
-                    <div className={`flex items-center justify-center w-8 h-8 rounded-full ${
-                      currentStep >= 2 ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-500'
+                    <div className={`flex items-center justify-center w-10 h-10 rounded-full shadow-md ${
+                      currentStep >= 2 
+                        ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white' 
+                        : 'bg-gray-200 text-gray-500'
                     }`}>
-                      2
+                      {currentStep > 2 ? <FiCheck className="w-5 h-5" /> : "2"}
                     </div>
-                    <div className={`ml-2 text-sm ${
-                      currentStep >= 2 ? 'text-indigo-600 font-medium' : 'text-gray-500'
+                    <div className={`ml-2 text-sm font-medium ${
+                      currentStep >= 2 ? 'text-indigo-600' : 'text-gray-500'
                     }`}>
                       Security
                     </div>
@@ -320,17 +318,20 @@ export default function RegisterPage() {
                 >
                   <div className="space-y-6">
                     <div>
+                      <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-1 ml-1">
+                        Full Name
+                      </label>
                       <div className="relative">
-                        <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                          <FiUser className="text-gray-500" />
+                        <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                          <FiUser className="text-indigo-500" />
                         </div>
                         <input
                           id="fullName"
                           type="text"
                           autoComplete="name"
-                          placeholder="Full name"
-                          className={`pl-10 block w-full appearance-none rounded-lg border px-3 py-3 placeholder-gray-400 shadow-sm transition-all duration-200 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm ${
-                            errors.fullName ? "border-red-300" : "border-gray-300"
+                          placeholder="Enter your full name"
+                          className={`pl-11 block w-full appearance-none rounded-xl border bg-white/70 px-4 py-3.5 placeholder-gray-400 shadow-sm transition-all duration-200 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 sm:text-sm ${
+                            errors.fullName ? "border-red-300" : "border-indigo-100"
                           }`}
                           {...register("fullName")}
                         />
@@ -339,25 +340,31 @@ export default function RegisterPage() {
                         <motion.p 
                           initial={{ opacity: 0, y: -10 }}
                           animate={{ opacity: 1, y: 0 }}
-                          className="mt-2 text-sm text-red-600"
+                          className="mt-2 text-sm text-red-600 flex items-center"
                         >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                          </svg>
                           {errors.fullName.message}
                         </motion.p>
                       )}
                     </div>
 
                     <div>
+                      <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1 ml-1">
+                        Email Address
+                      </label>
                       <div className="relative">
-                        <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                          <FiMail className="text-gray-500" />
+                        <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                          <FiMail className="text-indigo-500" />
                         </div>
                         <input
                           id="email"
                           type="email"
                           autoComplete="email"
-                          placeholder="Email address"
-                          className={`pl-10 block w-full appearance-none rounded-lg border px-3 py-3 placeholder-gray-400 shadow-sm transition-all duration-200 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm ${
-                            errors.email ? "border-red-300" : "border-gray-300"
+                          placeholder="Enter your email address"
+                          className={`pl-11 block w-full appearance-none rounded-xl border bg-white/70 px-4 py-3.5 placeholder-gray-400 shadow-sm transition-all duration-200 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 sm:text-sm ${
+                            errors.email ? "border-red-300" : "border-indigo-100"
                           }`}
                           {...register("email")}
                         />
@@ -366,69 +373,37 @@ export default function RegisterPage() {
                         <motion.p 
                           initial={{ opacity: 0, y: -10 }}
                           animate={{ opacity: 1, y: 0 }}
-                          className="mt-2 text-sm text-red-600"
+                          className="mt-2 text-sm text-red-600 flex items-center"
                         >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                          </svg>
                           {errors.email.message}
                         </motion.p>
                       )}
                     </div>
 
-                    <div className="flex justify-between items-center">
+                    <div className="flex justify-between items-center pt-4">
                       <div className="text-sm">
-                        <Link href="/login" className="font-medium text-indigo-600 hover:text-indigo-500 transition-colors duration-200">
+                        <Link href="/login" className="font-medium text-indigo-600 hover:text-indigo-500 transition-colors duration-200 flex items-center">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 17l-5-5m0 0l5-5m-5 5h12" />
+                          </svg>
                           Already have an account?
                         </Link>
                       </div>
                       <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
+                        whileHover={{ scale: 1.03, boxShadow: "0 10px 15px -3px rgba(79, 70, 229, 0.2)" }}
+                        whileTap={{ scale: 0.97 }}
                         type="button"
                         onClick={nextStep}
                         disabled={!fullName || !email || !!errors.fullName || !!errors.email}
-                        className="inline-flex justify-center rounded-lg border border-transparent bg-gradient-to-r from-indigo-600 to-purple-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                        className="inline-flex justify-center items-center rounded-xl border border-transparent bg-gradient-to-r from-indigo-600 via-purple-500 to-indigo-700 py-3 px-6 text-sm font-medium text-white shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
                       >
                         Continue
-                      </motion.button>
-                    </div>
-                    
-                    <div className="relative flex items-center justify-center mt-6">
-                      <div className="flex-grow border-t border-gray-300"></div>
-                      <span className="flex-shrink mx-4 text-gray-600 text-sm">or sign up with</span>
-                      <div className="flex-grow border-t border-gray-300"></div>
-                    </div>
-                    
-                    <div className="flex justify-center space-x-4">
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => handleSocialSignup('Google')}
-                        className="flex items-center justify-center w-12 h-12 rounded-full bg-white shadow-md hover:shadow-lg transition-all duration-200"
-                      >
-                        <FcGoogle className="w-6 h-6" />
-                      </motion.button>
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => handleSocialSignup('Facebook')}
-                        className="flex items-center justify-center w-12 h-12 rounded-full bg-white shadow-md hover:shadow-lg transition-all duration-200"
-                      >
-                        <FaFacebook className="w-6 h-6 text-blue-600" />
-                      </motion.button>
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => handleSocialSignup('GitHub')}
-                        className="flex items-center justify-center w-12 h-12 rounded-full bg-white shadow-md hover:shadow-lg transition-all duration-200"
-                      >
-                        <FiGithub className="w-6 h-6" />
-                      </motion.button>
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => handleSocialSignup('Twitter')}
-                        className="flex items-center justify-center w-12 h-12 rounded-full bg-white shadow-md hover:shadow-lg transition-all duration-200"
-                      >
-                        <FiTwitter className="w-6 h-6 text-blue-400" />
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                        </svg>
                       </motion.button>
                     </div>
                   </div>
@@ -446,32 +421,36 @@ export default function RegisterPage() {
                   className="space-y-6"
                 >
                   <div>
+                    <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1 ml-1 flex items-center">
+                      <RiLockPasswordLine className="inline mr-1" />
+                      Password
+                    </label>
                     <div className="relative">
-                      <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                        <FiLock className="text-gray-500" />
+                      <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                        <FiLock className="text-indigo-500" />
                       </div>
                       <input
                         id="password"
                         type={showPassword ? "text" : "password"}
                         autoComplete="new-password"
-                        placeholder="Create password"
-                        className={`pl-10 block w-full appearance-none rounded-lg border px-3 py-3 placeholder-gray-400 shadow-sm transition-all duration-200 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm ${
-                          errors.password ? "border-red-300" : "border-gray-300"
+                        placeholder="Create a strong password"
+                        className={`pl-11 block w-full appearance-none rounded-xl border bg-white/70 px-4 py-3.5 placeholder-gray-400 shadow-sm transition-all duration-200 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 sm:text-sm ${
+                          errors.password ? "border-red-300" : "border-indigo-100"
                         }`}
                         {...register("password")}
                       />
-                      <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                      <div className="absolute inset-y-0 right-0 flex items-center pr-4">
                         <button
                           type="button"
                           onClick={() => setShowPassword(!showPassword)}
-                          className="text-gray-500 hover:text-gray-700 focus:outline-none"
+                          className="text-indigo-500 hover:text-indigo-700 focus:outline-none"
                         >
                           {showPassword ? <FiEyeOff /> : <FiEye />}
                         </button>
                       </div>
                     </div>
                     {password && (
-                      <div className="mt-2">
+                      <div className="mt-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
                         <div className="flex items-center justify-between mb-1">
                           <div className="text-xs font-medium text-gray-700">Password strength:</div>
                           <div className={`text-xs font-medium ${
@@ -481,7 +460,7 @@ export default function RegisterPage() {
                             {passwordFeedback}
                           </div>
                         </div>
-                        <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                        <div className="w-full h-2.5 bg-gray-200 rounded-full overflow-hidden">
                           <motion.div 
                             initial={{ width: 0 }}
                             animate={{ width: `${(passwordStrength / 5) * 100}%` }}
@@ -491,18 +470,30 @@ export default function RegisterPage() {
                             }`}
                           ></motion.div>
                         </div>
-                        <div className="grid grid-cols-4 gap-1 mt-2">
-                          <div className={`text-xs ${/[A-Z]/.test(password) ? 'text-green-500' : 'text-gray-500'}`}>
-                            • Uppercase
+                        <div className="grid grid-cols-2 gap-2 mt-2">
+                          <div className={`text-xs flex items-center ${/[A-Z]/.test(password) ? 'text-green-500' : 'text-gray-500'}`}>
+                            <span className={`inline-block w-4 h-4 mr-1 rounded-full ${/[A-Z]/.test(password) ? 'bg-green-100' : 'bg-gray-100'} flex items-center justify-center`}>
+                              {/[A-Z]/.test(password) ? <FiCheck className="w-3 h-3" /> : " "}
+                            </span>
+                            Uppercase
                           </div>
-                          <div className={`text-xs ${/[a-z]/.test(password) ? 'text-green-500' : 'text-gray-500'}`}>
-                            • Lowercase
+                          <div className={`text-xs flex items-center ${/[a-z]/.test(password) ? 'text-green-500' : 'text-gray-500'}`}>
+                            <span className={`inline-block w-4 h-4 mr-1 rounded-full ${/[a-z]/.test(password) ? 'bg-green-100' : 'bg-gray-100'} flex items-center justify-center`}>
+                              {/[a-z]/.test(password) ? <FiCheck className="w-3 h-3" /> : " "}
+                            </span>
+                            Lowercase
                           </div>
-                          <div className={`text-xs ${/\d/.test(password) ? 'text-green-500' : 'text-gray-500'}`}>
-                            • Number
+                          <div className={`text-xs flex items-center ${/\d/.test(password) ? 'text-green-500' : 'text-gray-500'}`}>
+                            <span className={`inline-block w-4 h-4 mr-1 rounded-full ${/\d/.test(password) ? 'bg-green-100' : 'bg-gray-100'} flex items-center justify-center`}>
+                              {/\d/.test(password) ? <FiCheck className="w-3 h-3" /> : " "}
+                            </span>
+                            Number
                           </div>
-                          <div className={`text-xs ${/[@$!%*?&]/.test(password) ? 'text-green-500' : 'text-gray-500'}`}>
-                            • Symbol
+                          <div className={`text-xs flex items-center ${/[@$!%*?&]/.test(password) ? 'text-green-500' : 'text-gray-500'}`}>
+                            <span className={`inline-block w-4 h-4 mr-1 rounded-full ${/[@$!%*?&]/.test(password) ? 'bg-green-100' : 'bg-gray-100'} flex items-center justify-center`}>
+                              {/[@$!%*?&]/.test(password) ? <FiCheck className="w-3 h-3" /> : " "}
+                            </span>
+                            Symbol
                           </div>
                         </div>
                       </div>
@@ -511,33 +502,39 @@ export default function RegisterPage() {
                       <motion.p 
                         initial={{ opacity: 0, y: -10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="mt-2 text-sm text-red-600"
+                        className="mt-2 text-sm text-red-600 flex items-center"
                       >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
                         {errors.password.message}
                       </motion.p>
                     )}
                   </div>
 
                   <div>
+                    <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1 ml-1">
+                      Confirm Password
+                    </label>
                     <div className="relative">
-                      <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                        <FiLock className="text-gray-500" />
+                      <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                        <FiLock className="text-indigo-500" />
                       </div>
                       <input
                         id="confirmPassword"
                         type={showConfirmPassword ? "text" : "password"}
                         autoComplete="new-password"
-                        placeholder="Confirm password"
-                        className={`pl-10 block w-full appearance-none rounded-lg border px-3 py-3 placeholder-gray-400 shadow-sm transition-all duration-200 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm ${
-                          errors.confirmPassword ? "border-red-300" : "border-gray-300"
+                        placeholder="Confirm your password"
+                        className={`pl-11 block w-full appearance-none rounded-xl border bg-white/70 px-4 py-3.5 placeholder-gray-400 shadow-sm transition-all duration-200 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 sm:text-sm ${
+                          errors.confirmPassword ? "border-red-300" : "border-indigo-100"
                         }`}
                         {...register("confirmPassword")}
                       />
-                      <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                      <div className="absolute inset-y-0 right-0 flex items-center pr-4">
                         <button
                           type="button"
                           onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                          className="text-gray-500 hover:text-gray-700 focus:outline-none"
+                          className="text-indigo-500 hover:text-indigo-700 focus:outline-none"
                         >
                           {showConfirmPassword ? <FiEyeOff /> : <FiEye />}
                         </button>
@@ -547,54 +544,63 @@ export default function RegisterPage() {
                       <motion.p 
                         initial={{ opacity: 0, y: -10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="mt-2 text-sm text-red-600"
+                        className="mt-2 text-sm text-red-600 flex items-center"
                       >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
                         {errors.confirmPassword.message}
                       </motion.p>
                     )}
                   </div>
 
-                  <div className="flex items-start">
-                    <div className="flex items-center h-5">
+                  <div className="flex items-start pt-2">
+                    <div className="flex h-5 items-center">
                       <input
                         id="agreeToTerms"
                         type="checkbox"
-                        className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                        className="h-5 w-5 rounded-md border-indigo-200 text-indigo-600 focus:ring-indigo-500"
                         {...register("agreeToTerms")}
                       />
                     </div>
                     <div className="ml-3 text-sm">
                       <label htmlFor="agreeToTerms" className="text-gray-700">
-                        I agree to the <a href="#" className="text-indigo-600 hover:text-indigo-500">Terms of Service</a> and <a href="#" className="text-indigo-600 hover:text-indigo-500">Privacy Policy</a>
+                        I agree to the <a href="#" className="text-indigo-600 hover:text-indigo-500 underline">Terms of Service</a> and <a href="#" className="text-indigo-600 hover:text-indigo-500 underline">Privacy Policy</a>
                       </label>
                       {errors.agreeToTerms && (
                         <motion.p 
                           initial={{ opacity: 0, y: -10 }}
                           animate={{ opacity: 1, y: 0 }}
-                          className="mt-1 text-sm text-red-600"
+                          className="mt-1 text-sm text-red-600 flex items-center"
                         >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                          </svg>
                           {errors.agreeToTerms.message}
                         </motion.p>
                       )}
                     </div>
                   </div>
 
-                  <div className="flex justify-between items-center">
+                  <div className="flex justify-between items-center pt-4">
                     <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
+                      whileHover={{ scale: 1.03 }}
+                      whileTap={{ scale: 0.97 }}
                       type="button"
                       onClick={prevStep}
-                      className="inline-flex justify-center rounded-lg border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all duration-200"
+                      className="inline-flex justify-center items-center rounded-xl border border-indigo-200 bg-white py-3 px-5 text-sm font-medium text-indigo-700 shadow-sm hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all duration-200"
                     >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 17l-5-5m0 0l5-5m-5 5h12" />
+                      </svg>
                       Back
                     </motion.button>
                     <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
+                      whileHover={{ scale: 1.03, boxShadow: "0 10px 15px -3px rgba(79, 70, 229, 0.2)" }}
+                      whileTap={{ scale: 0.97 }}
                       type="submit"
                       disabled={isSubmitting || !isValid}
-                      className="inline-flex justify-center rounded-lg border border-transparent bg-gradient-to-r from-indigo-600 to-purple-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                      className="inline-flex justify-center items-center rounded-xl border border-transparent bg-gradient-to-r from-indigo-600 via-purple-500 to-indigo-700 py-3 px-6 text-sm font-medium text-white shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
                     >
                       {isSubmitting ? (
                         <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -616,25 +622,41 @@ export default function RegisterPage() {
                   transition={{ duration: 0.5 }}
                   className="flex flex-col items-center justify-center py-8"
                 >
-                  <motion.div
-                    initial={{ scale: 0, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ delay: 0.3, type: "spring", stiffness: 200 }}
-                    className="w-24 h-24 rounded-full bg-green-100 flex items-center justify-center mb-6"
-                  >
-                    <HiOutlineDocumentCheck className="w-12 h-12 text-green-600" />
-                  </motion.div>
-                  <h2 className="text-2xl font-bold text-gray-900 mb-2">Account Created!</h2>
+                  <div className="relative">
+                    <motion.div
+                      initial={{ scale: 0, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ 
+                        delay: 0.3, 
+                        type: "spring", 
+                        stiffness: 200,
+                        damping: 15 
+                      }}
+                      className="w-32 h-32 rounded-full bg-gradient-to-br from-green-50 to-green-100 flex items-center justify-center mb-6 shadow-xl"
+                    >
+                      <HiOutlineDocumentCheck className="w-16 h-16 text-green-600" />
+                    </motion.div>
+                    <motion.div
+                      initial={{ scale: 0, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ delay: 0.5, duration: 0.3 }}
+                      className="absolute -top-2 -right-2 bg-green-500 text-white rounded-full w-10 h-10 flex items-center justify-center shadow-md"
+                    >
+                      <FiCheck className="w-6 h-6" />
+                    </motion.div>
+                  </div>
+                  
+                  <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-green-600 to-teal-600 mb-2">Account Created!</h2>
                   <p className="text-gray-600 text-center mb-6">
-                    Your account has been successfully created. You'll be redirected shortly.
+                    Your account has been successfully created.<br />You'll be redirected shortly.
                   </p>
                   <div className="w-full max-w-xs">
-                    <div className="h-1 w-full bg-gray-200 rounded-full overflow-hidden">
+                    <div className="h-2.5 w-full bg-gray-200 rounded-full overflow-hidden">
                       <motion.div
                         initial={{ width: 0 }}
                         animate={{ width: "100%" }}
                         transition={{ duration: 2 }}
-                        className="h-full bg-green-500"
+                        className="h-full bg-gradient-to-r from-green-500 to-teal-500"
                       ></motion.div>
                     </div>
                   </div>

@@ -1,25 +1,26 @@
 "use client";
 
+import "./login.css";
 import { useState, useEffect, Suspense } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-hot-toast";
 import { useSession } from "@/components/providers/SessionProvider";
-import { FiMail, FiLock, FiEye, FiEyeOff, FiGithub, FiTwitter } from "react-icons/fi";
-import { FcGoogle } from "react-icons/fc";
-import { FaFacebook } from "react-icons/fa";
-import { LuFingerprint } from "react-icons/lu";
+import { FiMail, FiLock, FiEye, FiEyeOff } from "react-icons/fi";
+import { LuFingerprint, LuShieldCheck, LuShield } from "react-icons/lu";
 import { RiShieldKeyholeLine } from "react-icons/ri";
 import { isLoggedIn } from "@/lib/clientAuth";
+import { cn } from "@/lib/utils";
 
 // Login form schema with validation
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
-  password: z.string().min(1, "Password is required"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
   rememberMe: z.boolean().optional(),
 });
 
@@ -37,6 +38,7 @@ function LoginPageContent() {
   const [showOtpInput, setShowOtpInput] = useState(false);
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [otpSent, setOtpSent] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
   
   const {
     register,
@@ -87,6 +89,7 @@ function LoginPageContent() {
 
   const handleBiometricLogin = async () => {
     setIsSubmitting(true);
+    setFormError(null);
     const loadingToastId = toast.loading("Authenticating with biometrics...");
     
     try {
@@ -109,6 +112,7 @@ function LoginPageContent() {
     } catch (error) {
       toast.dismiss(loadingToastId);
       toast.error("Biometric authentication failed. Please try another method.");
+      setFormError("Biometric authentication failed. Please try another method.");
     } finally {
       setIsSubmitting(false);
     }
@@ -117,10 +121,12 @@ function LoginPageContent() {
   const handleSendOtp = async () => {
     if (!email || errors.email) {
       toast.error("Please enter a valid email address");
+      setFormError("Please enter a valid email address");
       return;
     }
     
     setIsSubmitting(true);
+    setFormError(null);
     const loadingToastId = toast.loading("Sending verification code...");
     
     try {
@@ -134,6 +140,7 @@ function LoginPageContent() {
     } catch (error) {
       toast.dismiss(loadingToastId);
       toast.error("Failed to send verification code. Please try again.");
+      setFormError("Failed to send verification code. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -161,10 +168,12 @@ function LoginPageContent() {
     const otpValue = otp.join('');
     if (otpValue.length !== 6) {
       toast.error("Please enter the complete verification code");
+      setFormError("Please enter the complete verification code");
       return;
     }
     
     setIsSubmitting(true);
+    setFormError(null);
     const loadingToastId = toast.loading("Verifying code...");
     
     try {
@@ -187,6 +196,7 @@ function LoginPageContent() {
     } catch (error) {
       toast.dismiss(loadingToastId);
       toast.error("Invalid verification code. Please try again.");
+      setFormError("Invalid verification code. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -196,6 +206,7 @@ function LoginPageContent() {
     if (isSubmitting) return;
     
     setIsSubmitting(true);
+    setFormError(null);
     const loadingToastId = toast.loading("Signing in...");
     
     try {
@@ -248,457 +259,507 @@ function LoginPageContent() {
         login(responseData.user);
       }
       
-      // Allow a small delay for toast to be visible
-      setTimeout(() => {
-        // Use direct location change for more reliable navigation
-        // Prioritize the redirect from URL parameters, then saved redirect, then default to dashboard
-        const finalRedirect = redirectPath || localStorage.getItem('redirectAfterAuth') || '/dashboard';
-        
-        // Clear any saved redirect to prevent future unexpected redirects
-        localStorage.removeItem('redirectAfterAuth');
-        
-        console.log(`[Login] Redirecting to: ${finalRedirect}`);
-        window.location.href = finalRedirect;
-      }, 300);
-      
+      // Use direct location change for more reliable navigation after login
+      window.location.href = redirectPath;
     } catch (error: any) {
+      console.error("[Login] Login error:", error);
       toast.dismiss(loadingToastId);
       
-      // Safely log error information with type checking
-      console.log("[Login] Error type:", typeof error);
-      console.log("[Login] Error details:", error ? JSON.stringify(error, Object.getOwnPropertyNames(error)) : "Empty error object");
-      
-      // Handle different error formats with fallbacks for empty objects
-      let errorMessage = "Login failed. Please check credentials or try again.";
-      
-      if (error) {
-        if (error.status === 401) {
-          // Invalid credentials
-          errorMessage = "Invalid email or password";
-        } else if (error.status === 403) {
-          // Account locked
-          errorMessage = "Your account has been locked due to too many failed attempts";
-        } else if (error.status === 400) {
-          // Validation error
-          errorMessage = "Please check your information and try again";
-        } else if (error.message) {
-          // Custom error message
-          errorMessage = error.message;
-        } else if (error instanceof TypeError && error.message && error.message.includes('fetch')) {
-          errorMessage = "Network error. Please check your connection and try again.";
-        }
-      }
-      
+      // Extract and display error message
+      const errorMessage = error.message || "Failed to sign in. Please try again.";
       toast.error(errorMessage);
+      setFormError(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleSocialLogin = (provider: string) => {
-    toast.loading(`Authenticating with ${provider}...`);
-    // In a real implementation, this would redirect to the OAuth provider
-    setTimeout(() => {
-      toast.dismiss();
-      toast.success(`${provider} authentication coming soon!`);
-    }, 1500);
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 to-blue-100 flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8">
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="w-full max-w-md"
-      >
-        <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl overflow-hidden">
-          <div className="p-8">
-            <div className="text-center mb-8">
-              <motion.div
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ delay: 0.2, duration: 0.5 }}
-                className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white mb-4"
-              >
-                <RiShieldKeyholeLine className="w-8 h-8" />
-              </motion.div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome back</h1>
-              <p className="text-gray-600">Sign in to continue to your account</p>
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-gray-50 via-indigo-50/10 to-purple-50/10 relative overflow-hidden">
+      {/* Background elements with dynamic glass morphism effect */}
+      <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
+        {/* Animated gradient background */}
+        <div className="absolute -top-[40%] -right-[20%] w-[80%] h-[80%] rounded-full bg-gradient-to-br from-purple-300/20 via-indigo-400/20 to-blue-300/20 blur-[100px] animate-float-slow"></div>
+        <div className="absolute -bottom-[40%] -left-[20%] w-[80%] h-[80%] rounded-full bg-gradient-to-tr from-blue-300/20 via-purple-300/20 to-pink-300/20 blur-[100px] animate-float-medium"></div>
+        <div className="absolute top-[20%] left-[30%] w-[60%] h-[60%] rounded-full bg-gradient-to-tr from-pink-300/10 via-indigo-300/10 to-teal-300/10 blur-[80px] animate-float-fast"></div>
+        
+        {/* Dynamic mesh grid for futuristic effect */}
+        <div className="absolute inset-0 bg-[url('/images/grid-pattern.svg')] bg-center opacity-[0.015]"></div>
+        
+        {/* Animated particles */}
+        <div className="absolute inset-0">
+          {[...Array(20)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute rounded-full bg-white/50 mix-blend-overlay"
+              style={{
+                width: Math.random() * 8 + 2,
+                height: Math.random() * 8 + 2,
+                top: `${Math.random() * 100}%`,
+                left: `${Math.random() * 100}%`,
+                filter: "blur(1px)",
+              }}
+              animate={{
+                y: [0, Math.random() * -200 - 50],
+                x: [0, Math.random() * 40 - 20],
+                opacity: [0, 0.7, 0],
+                scale: [0, 1, 0],
+              }}
+              transition={{
+                duration: Math.random() * 20 + 10,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+            />
+          ))}
+        </div>
+        
+        {/* Decorative elements */}
+        <div className="absolute top-[15%] right-[15%] h-28 w-28 rounded-full border border-indigo-200/30 backdrop-blur-sm"></div>
+        <div className="absolute bottom-[20%] right-[20%] h-40 w-40 rounded-full border border-purple-200/20 backdrop-blur-sm"></div>
+        <div className="absolute top-[40%] left-[10%] h-24 w-24 rounded-full border border-blue-200/20 backdrop-blur-sm"></div>
+
+        {/* Subtle light effect */}
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] rounded-full radial-gradient-light opacity-10"></div>
+      </div>
+      
+      {/* Main content container */}
+      <div className="flex-1 flex items-center justify-center p-4 md:p-8 relative z-10">
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+          className="w-full max-w-md"
+        >
+          <div className="relative w-full overflow-hidden rounded-[2.5rem] backdrop-blur-sm border border-white/30 bg-gradient-to-b from-white/80 to-white/70 shadow-[0_20px_70px_-15px_rgba(0,0,0,0.3)]">
+            {/* Subtle shine effect on the card */}
+            <div className="absolute inset-0 overflow-hidden">
+              <motion.div 
+                animate={{ 
+                  x: ["0%", "100%"],
+                  opacity: [0, 0.2, 0]
+                }}
+                transition={{ 
+                  duration: 5,
+                  repeat: Infinity,
+                  repeatType: "loop",
+                  ease: "easeInOut"
+                }}
+                className="w-1/3 h-full bg-gradient-to-r from-transparent via-white/40 to-transparent transform -skew-x-12"
+              />
+            </div>
+
+            {/* Card header with logo and brand */}
+            <div className="relative px-8 pt-10 pb-6 md:px-12">
+              <div className="flex items-center justify-center mb-8">
+                <div className="relative">
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 blur-md opacity-70 animate-pulse-slow scale-110"></div>
+                  <div className="relative h-20 w-20 flex items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg">
+                    <LuShield className="h-10 w-10 text-white" />
+                  </div>
+                </div>
+              </div>
+              <h2 className="text-center text-3xl font-bold tracking-tight text-gray-900">
+                <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600">
+                  Welcome Back
+                </span>
+              </h2>
+              <p className="mt-2 text-center text-sm text-gray-600">
+                Sign in to access your dashboard
+              </p>
             </div>
             
-            <div className="flex justify-center space-x-4 mb-6">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => handleSocialLogin('Google')}
-                className="flex items-center justify-center w-12 h-12 rounded-full bg-white shadow-md hover:shadow-lg transition-all duration-200"
-              >
-                <FcGoogle className="w-6 h-6" />
-              </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => handleSocialLogin('Facebook')}
-                className="flex items-center justify-center w-12 h-12 rounded-full bg-white shadow-md hover:shadow-lg transition-all duration-200"
-              >
-                <FaFacebook className="w-6 h-6 text-blue-600" />
-              </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => handleSocialLogin('GitHub')}
-                className="flex items-center justify-center w-12 h-12 rounded-full bg-white shadow-md hover:shadow-lg transition-all duration-200"
-              >
-                <FiGithub className="w-6 h-6" />
-              </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => handleSocialLogin('Twitter')}
-                className="flex items-center justify-center w-12 h-12 rounded-full bg-white shadow-md hover:shadow-lg transition-all duration-200"
-              >
-                <FiTwitter className="w-6 h-6 text-blue-400" />
-              </motion.button>
-            </div>
-            
-            <div className="relative flex items-center justify-center mb-6">
-              <div className="flex-grow border-t border-gray-300"></div>
-              <span className="flex-shrink mx-4 text-gray-600 text-sm">or continue with</span>
-              <div className="flex-grow border-t border-gray-300"></div>
-            </div>
-            
-            <div className="flex justify-center mb-6">
-              <div className="flex p-1 bg-gray-100 rounded-lg">
-                <button
-                  onClick={() => setLoginMethod('password')}
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
-                    loginMethod === 'password' 
-                      ? 'bg-white shadow-sm text-indigo-600' 
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                >
-                  Password
-                </button>
-                {biometricAvailable && (
-                  <button
-                    onClick={() => setLoginMethod('biometric')}
-                    className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
-                      loginMethod === 'biometric' 
-                        ? 'bg-white shadow-sm text-indigo-600' 
-                        : 'text-gray-600 hover:text-gray-900'
-                    }`}
+            {/* Login method toggle */}
+            <div className="px-8 md:px-12">
+              <div className="p-1.5 bg-gradient-to-r from-indigo-50/80 via-purple-50/80 to-pink-50/80 rounded-full shadow-inner">
+                <div className="grid grid-cols-2 gap-2">
+                  <motion.button
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => setLoginMethod('password')}
+                    className={cn(
+                      "relative py-3 px-4 text-sm font-medium rounded-full transition-all duration-300",
+                      loginMethod === 'password' 
+                        ? "bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500 text-white shadow-lg" 
+                        : "text-gray-600 hover:text-gray-800 hover:bg-white/50"
+                    )}
                   >
-                    Biometric
-                  </button>
-                )}
-                <button
-                  onClick={() => setLoginMethod('otp')}
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
-                    loginMethod === 'otp' 
-                      ? 'bg-white shadow-sm text-indigo-600' 
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                >
-                  OTP
-                </button>
+                    <span className="relative z-10 flex items-center justify-center gap-2">
+                      <FiLock className={loginMethod === 'password' ? "text-white" : "text-indigo-400"} />
+                      Password
+                    </span>
+                  </motion.button>
+                  
+                  <motion.button
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => setLoginMethod('otp')}
+                    className={cn(
+                      "relative py-3 px-4 text-sm font-medium rounded-full transition-all duration-300",
+                      loginMethod === 'otp' 
+                        ? "bg-gradient-to-r from-violet-500 via-purple-500 to-violet-500 text-white shadow-lg" 
+                        : "text-gray-600 hover:text-gray-800 hover:bg-white/50"
+                    )}
+                  >
+                    <span className="relative z-10 flex items-center justify-center gap-2">
+                      <RiShieldKeyholeLine className={loginMethod === 'otp' ? "text-white" : "text-purple-400"} />
+                      Email OTP
+                    </span>
+                  </motion.button>
+                </div>
               </div>
             </div>
             
-            <AnimatePresence mode="wait">
-              {loginMethod === 'password' && (
-                <motion.form 
-                  key="password-form"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{ duration: 0.3 }}
-                  className="space-y-6" 
-                  onSubmit={handleSubmit(onSubmit)}
-                >
-                  <div>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                        <FiMail className="text-gray-500" />
-                      </div>
-                      <input
-                        id="email"
-                        type="email"
-                        autoComplete="email"
-                        placeholder="Email address"
-                        className={`pl-10 block w-full appearance-none rounded-lg border px-3 py-3 placeholder-gray-400 shadow-sm transition-all duration-200 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm ${
-                          errors.email ? "border-red-300" : "border-gray-300"
-                        }`}
-                        {...register("email")}
-                      />
-                    </div>
-                    {errors.email && (
-                      <motion.p 
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="mt-2 text-sm text-red-600"
-                      >
-                        {errors.email.message}
-                      </motion.p>
-                    )}
-                  </div>
-
-                  <div>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                        <FiLock className="text-gray-500" />
-                      </div>
-                      <input
-                        id="password"
-                        type={showPassword ? "text" : "password"}
-                        autoComplete="current-password"
-                        placeholder="Password"
-                        className={`pl-10 block w-full appearance-none rounded-lg border px-3 py-3 placeholder-gray-400 shadow-sm transition-all duration-200 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm ${
-                          errors.password ? "border-red-300" : "border-gray-300"
-                        }`}
-                        {...register("password")}
-                      />
-                      <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="text-gray-500 hover:text-gray-700 focus:outline-none"
-                        >
-                          {showPassword ? <FiEyeOff /> : <FiEye />}
-                        </button>
-                      </div>
-                    </div>
-                    {errors.password && (
-                      <motion.p 
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="mt-2 text-sm text-red-600"
-                      >
-                        {errors.password.message}
-                      </motion.p>
-                    )}
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <input
-                        id="rememberMe"
-                        type="checkbox"
-                        className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                        {...register("rememberMe")}
-                      />
-                      <label htmlFor="rememberMe" className="ml-2 block text-sm text-gray-700">
-                        Remember me
-                      </label>
-                    </div>
-
-                    <div className="text-sm">
-                      <Link href="/forgot-password" className="font-medium text-indigo-600 hover:text-indigo-500 transition-colors duration-200">
-                        Forgot password?
-                      </Link>
-                    </div>
-                  </div>
-
-                  <div>
-                    <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      type="submit"
-                      disabled={isSubmitting}
-                      className="flex w-full justify-center rounded-lg border border-transparent bg-gradient-to-r from-indigo-600 to-purple-600 py-3 px-4 text-sm font-medium text-white shadow-sm hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-                    >
-                      {isSubmitting ? (
-                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                      ) : null}
-                      {isSubmitting ? "Signing in..." : "Sign in"}
-                    </motion.button>
-                  </div>
-                </motion.form>
-              )}
-              
-              {loginMethod === 'biometric' && (
+            {/* Error display */}
+            <AnimatePresence>
+              {formError && (
                 <motion.div
-                  key="biometric-form"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.3 }}
-                  className="space-y-6"
+                  className="mt-4 mx-8 md:mx-12 bg-red-50 border-l-4 border-red-500 p-4 rounded-2xl"
                 >
-                  <div>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                        <FiMail className="text-gray-500" />
-                      </div>
-                      <input
-                        type="email"
-                        placeholder="Email address"
-                        value={email}
-                        onChange={(e) => setValue('email', e.target.value)}
-                        className="pl-10 block w-full appearance-none rounded-lg border border-gray-300 px-3 py-3 placeholder-gray-400 shadow-sm transition-all duration-200 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
-                      />
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0">
+                      <svg className="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <div className="ml-3">
+                      <p className="text-sm text-red-700">{formError}</p>
                     </div>
                   </div>
-                  
-                  <div className="flex flex-col items-center justify-center py-6">
-                    <motion.div
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="w-24 h-24 rounded-full bg-indigo-100 flex items-center justify-center mb-4 cursor-pointer"
-                      onClick={handleBiometricLogin}
-                    >
-                      <LuFingerprint className="w-12 h-12 text-indigo-600" />
-                    </motion.div>
-                    <p className="text-gray-700 text-center">
-                      Click the icon to authenticate with your biometric data
-                    </p>
-                  </div>
-                  
-                  <div>
-                    <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      type="button"
-                      disabled={isSubmitting}
-                      onClick={handleBiometricLogin}
-                      className="flex w-full justify-center rounded-lg border border-transparent bg-gradient-to-r from-indigo-600 to-purple-600 py-3 px-4 text-sm font-medium text-white shadow-sm hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-                    >
-                      {isSubmitting ? (
-                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                      ) : null}
-                      {isSubmitting ? "Authenticating..." : "Authenticate with Biometrics"}
-                    </motion.button>
-                  </div>
-                </motion.div>
-              )}
-              
-              {loginMethod === 'otp' && (
-                <motion.div
-                  key="otp-form"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{ duration: 0.3 }}
-                  className="space-y-6"
-                >
-                  <div>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                        <FiMail className="text-gray-500" />
-                      </div>
-                      <input
-                        type="email"
-                        placeholder="Email address"
-                        value={email}
-                        onChange={(e) => setValue('email', e.target.value)}
-                        className="pl-10 block w-full appearance-none rounded-lg border border-gray-300 px-3 py-3 placeholder-gray-400 shadow-sm transition-all duration-200 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
-                      />
-                    </div>
-                  </div>
-                  
-                  {!showOtpInput ? (
-                    <div>
-                      <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        type="button"
-                        disabled={isSubmitting || !email}
-                        onClick={handleSendOtp}
-                        className="flex w-full justify-center rounded-lg border border-transparent bg-gradient-to-r from-indigo-600 to-purple-600 py-3 px-4 text-sm font-medium text-white shadow-sm hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-                      >
-                        {isSubmitting ? (
-                          <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
-                        ) : null}
-                        {isSubmitting ? "Sending..." : "Send Verification Code"}
-                      </motion.button>
-                    </div>
-                  ) : (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="space-y-4"
-                    >
-                      <p className="text-sm text-gray-600 text-center">
-                        Enter the 6-digit code sent to your email
-                      </p>
-                      <div className="flex justify-center space-x-2">
-                        {otp.map((digit, index) => (
-                          <input
-                            key={index}
-                            id={`otp-${index}`}
-                            type="text"
-                            maxLength={1}
-                            value={digit}
-                            onChange={(e) => handleOtpChange(index, e.target.value)}
-                            className="w-10 h-12 text-center text-lg font-semibold rounded-md border border-gray-300 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
-                          />
-                        ))}
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setOtp(['', '', '', '', '', '']);
-                            handleSendOtp();
-                          }}
-                          className="text-sm text-indigo-600 hover:text-indigo-500"
-                        >
-                          Resend code
-                        </button>
-                        <p className="text-xs text-gray-500">
-                          Code valid for 10 minutes
-                        </p>
-                      </div>
-                      <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        type="button"
-                        disabled={isSubmitting || otp.join('').length !== 6}
-                        onClick={handleVerifyOtp}
-                        className="flex w-full justify-center rounded-lg border border-transparent bg-gradient-to-r from-indigo-600 to-purple-600 py-3 px-4 text-sm font-medium text-white shadow-sm hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-                      >
-                        {isSubmitting ? (
-                          <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
-                        ) : null}
-                        {isSubmitting ? "Verifying..." : "Verify Code"}
-                      </motion.button>
-                    </motion.div>
-                  )}
                 </motion.div>
               )}
             </AnimatePresence>
             
-            <div className="mt-6 text-center">
-              <p className="text-sm text-gray-600">
-                Don't have an account?{" "}
-                <Link href="/register" className="font-medium text-indigo-600 hover:text-indigo-500 transition-colors duration-200">
-                  Sign up
-                </Link>
-              </p>
+            {/* Form container */}
+            <div className="px-8 pt-8 pb-6 md:px-12">
+              <AnimatePresence mode="wait">
+                {loginMethod === 'password' && (
+                  <motion.form
+                    key="password-form"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 20 }}
+                    transition={{ duration: 0.3 }}
+                    onSubmit={handleSubmit(onSubmit)}
+                    className="space-y-5"
+                  >
+                    <div className="space-y-4">
+                      <div>
+                        <div className="group relative rounded-2xl transition-all duration-300 focus-within:ring-2 focus-within:ring-indigo-500/50 focus-within:ring-offset-1 bg-white/80 border border-gray-200 hover:border-indigo-400/70 shadow-sm backdrop-blur-sm">
+                          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                            <FiMail className="h-5 w-5 text-gray-400 group-focus-within:text-indigo-500" />
+                          </div>
+                          <input
+                            id="email"
+                            type="email"
+                            autoComplete="email"
+                            placeholder="Email address"
+                            {...register("email")}
+                            className={cn(
+                              "block w-full appearance-none rounded-2xl border-0 bg-transparent pl-12 pr-3 py-4 text-gray-900 placeholder-gray-400 focus:outline-none sm:text-sm",
+                              errors.email ? "text-red-900 placeholder-red-300" : ""
+                            )}
+                          />
+                        </div>
+                        {errors.email && (
+                          <motion.p
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="mt-2 text-sm text-red-600 pl-2"
+                          >
+                            {errors.email.message}
+                          </motion.p>
+                        )}
+                      </div>
+                      
+                      <div>
+                        <div className="group relative rounded-2xl transition-all duration-300 focus-within:ring-2 focus-within:ring-indigo-500/50 focus-within:ring-offset-1 bg-white/80 border border-gray-200 hover:border-indigo-400/70 shadow-sm backdrop-blur-sm">
+                          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                            <FiLock className="h-5 w-5 text-gray-400 group-focus-within:text-indigo-500" />
+                          </div>
+                          <input
+                            id="password"
+                            type={showPassword ? "text" : "password"}
+                            autoComplete="current-password"
+                            placeholder="Password"
+                            {...register("password")}
+                            className={cn(
+                              "block w-full appearance-none rounded-2xl border-0 bg-transparent pl-12 pr-12 py-4 text-gray-900 placeholder-gray-400 focus:outline-none sm:text-sm",
+                              errors.password ? "text-red-900 placeholder-red-300" : ""
+                            )}
+                          />
+                          <div className="absolute inset-y-0 right-0 flex items-center pr-4">
+                            <button
+                              type="button"
+                              onClick={() => setShowPassword(!showPassword)}
+                              className="text-gray-400 hover:text-gray-600 focus:outline-none"
+                            >
+                              {showPassword ? (
+                                <FiEyeOff className="h-5 w-5" />
+                              ) : (
+                                <FiEye className="h-5 w-5" />
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                        {errors.password && (
+                          <motion.p 
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="mt-2 text-sm text-red-600 pl-2"
+                          >
+                            {errors.password.message}
+                          </motion.p>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <div className="relative">
+                          <input
+                            id="remember-me"
+                            type="checkbox"
+                            {...register("rememberMe")}
+                            className="h-5 w-5 rounded-md border-gray-300 text-indigo-600 focus:ring-indigo-500 opacity-0 absolute"
+                          />
+                          <div className="h-5 w-5 rounded-md border border-gray-300 bg-white flex items-center justify-center">
+                            <motion.div 
+                              animate={watch("rememberMe") ? { scale: 1, opacity: 1 } : { scale: 0, opacity: 0 }}
+                              transition={{ duration: 0.2 }}
+                              className="h-3 w-3 rounded-sm bg-indigo-600"
+                            />
+                          </div>
+                        </div>
+                        <label htmlFor="remember-me" className="ml-3 block text-sm text-gray-700">
+                          Remember me
+                        </label>
+                      </div>
+                      
+                      <Link 
+                        href="/forgot-password" 
+                        className="text-sm font-medium text-indigo-600 hover:text-indigo-500 hover:underline transition-all duration-200"
+                      >
+                        Forgot password?
+                      </Link>
+                    </div>
+                    
+                    <div className="pt-3">
+                      <motion.button
+                        type="submit"
+                        whileHover={{ scale: 1.02, boxShadow: "0 15px 30px -5px rgba(99, 102, 241, 0.5)" }}
+                        whileTap={{ scale: 0.98 }}
+                        disabled={isSubmitting}
+                        className="group relative flex w-full justify-center rounded-full border border-transparent py-4 px-4 text-sm font-medium text-white shadow-xl disabled:opacity-70 disabled:cursor-not-allowed overflow-hidden"
+                      >
+                        {/* Gradient background with animation on hover */}
+                        <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 bg-size-200 bg-pos-0 group-hover:bg-pos-100 transition-all duration-500"></div>
+                        
+                        {/* Glass effect */}
+                        <div className="absolute inset-0 w-full h-1/2 bg-gradient-to-b from-white/20 to-transparent"></div>
+                        
+                        {/* Animated shine effect */}
+                        <div className="absolute inset-0 opacity-0 group-hover:opacity-30 transition-opacity duration-300">
+                          <div className="absolute inset-0 -translate-x-full animate-[shine_1.5s_ease-in-out_infinite] bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
+                        </div>
+                        
+                        <span className="relative flex items-center justify-center font-medium">
+                          {isSubmitting && (
+                            <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                          )}
+                          {isSubmitting ? "Signing in..." : "Sign in"}
+                        </span>
+                      </motion.button>
+                    </div>
+                  </motion.form>
+                )}
+                
+                {loginMethod === 'otp' && (
+                  <motion.div
+                    key="otp-form"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 20 }}
+                    transition={{ duration: 0.3 }}
+                    className="space-y-5"
+                  >
+                    <div className="space-y-4">
+                      <div className="group relative rounded-2xl transition-all duration-300 focus-within:ring-2 focus-within:ring-purple-500/50 focus-within:ring-offset-1 bg-white/80 border border-gray-200 hover:border-purple-400/70 shadow-sm backdrop-blur-sm">
+                        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                          <FiMail className="h-5 w-5 text-gray-400 group-focus-within:text-purple-500" />
+                        </div>
+                        <input
+                          type="email"
+                          placeholder="Email address"
+                          value={email}
+                          onChange={(e) => setValue('email', e.target.value)}
+                          className="block w-full appearance-none rounded-2xl border-0 bg-transparent pl-12 pr-3 py-4 text-gray-900 placeholder-gray-400 focus:outline-none sm:text-sm"
+                        />
+                      </div>
+                    </div>
+                    
+                    {!showOtpInput ? (
+                      <div className="pt-3">
+                        <motion.button
+                          whileHover={{ scale: 1.02, boxShadow: "0 15px 30px -5px rgba(124, 58, 237, 0.5)" }}
+                          whileTap={{ scale: 0.98 }}
+                          type="button"
+                          disabled={isSubmitting || !email}
+                          onClick={handleSendOtp}
+                          className="group relative flex w-full justify-center rounded-full border border-transparent py-4 px-4 text-sm font-medium text-white shadow-xl disabled:opacity-70 disabled:cursor-not-allowed overflow-hidden"
+                        >
+                          {/* Gradient background with animation on hover */}
+                          <div className="absolute inset-0 bg-gradient-to-r from-violet-600 via-purple-600 to-violet-600 bg-size-200 bg-pos-0 group-hover:bg-pos-100 transition-all duration-500"></div>
+                          
+                          {/* Glass effect */}
+                          <div className="absolute inset-0 w-full h-1/2 bg-gradient-to-b from-white/20 to-transparent"></div>
+                          
+                          {/* Animated shine effect */}
+                          <div className="absolute inset-0 opacity-0 group-hover:opacity-30 transition-opacity duration-300">
+                            <div className="absolute inset-0 -translate-x-full animate-[shine_1.5s_ease-in-out_infinite] bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
+                          </div>
+                          
+                          <span className="relative flex items-center justify-center font-medium">
+                            {isSubmitting && (
+                              <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                            )}
+                            {isSubmitting ? "Sending..." : "Send Verification Code"}
+                          </span>
+                        </motion.button>
+                      </div>
+                    ) : (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="space-y-4"
+                      >
+                        <div className="p-4 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-2xl border border-purple-100/50 shadow-inner">
+                          <p className="text-sm text-center text-purple-700">
+                            We've sent a 6-digit verification code to 
+                            <span className="font-semibold"> {email}</span>
+                          </p>
+                        </div>
+                        
+                        <div className="flex justify-center space-x-2 py-3">
+                          {otp.map((digit, index) => (
+                            <motion.div
+                              key={index}
+                              initial={{ scale: 0.8, opacity: 0 }}
+                              animate={{ scale: 1, opacity: 1 }}
+                              transition={{ duration: 0.3, delay: index * 0.05 }}
+                            >
+                              <input
+                                id={`otp-${index}`}
+                                type="text"
+                                maxLength={1}
+                                value={digit}
+                                onChange={(e) => handleOtpChange(index, e.target.value)}
+                                className="w-11 h-14 text-center text-lg font-semibold rounded-xl bg-white/90 border border-gray-200 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50 shadow-sm backdrop-blur-sm"
+                                style={{ aspectRatio: "1" }}
+                              />
+                            </motion.div>
+                          ))}
+                        </div>
+                        
+                        <div className="flex justify-between items-center">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setOtp(['', '', '', '', '', '']);
+                              handleSendOtp();
+                            }}
+                            className="text-sm text-purple-600 hover:text-purple-500 hover:underline"
+                          >
+                            Resend code
+                          </button>
+                          <p className="text-xs text-gray-500">
+                            Code valid for 10 minutes
+                          </p>
+                        </div>
+                        
+                        <div className="pt-1">
+                          <motion.button
+                            whileHover={{ scale: 1.02, boxShadow: "0 15px 30px -5px rgba(124, 58, 237, 0.5)" }}
+                            whileTap={{ scale: 0.98 }}
+                            type="button"
+                            disabled={isSubmitting || otp.join('').length !== 6}
+                            onClick={handleVerifyOtp}
+                            className="group relative flex w-full justify-center rounded-full border border-transparent py-4 px-4 text-sm font-medium text-white shadow-xl disabled:opacity-70 disabled:cursor-not-allowed overflow-hidden"
+                          >
+                            {/* Gradient background with animation on hover */}
+                            <div className="absolute inset-0 bg-gradient-to-r from-violet-600 via-purple-600 to-violet-600 bg-size-200 bg-pos-0 group-hover:bg-pos-100 transition-all duration-500"></div>
+                            
+                            {/* Glass effect */}
+                            <div className="absolute inset-0 w-full h-1/2 bg-gradient-to-b from-white/20 to-transparent"></div>
+                            
+                            {/* Animated shine effect */}
+                            <div className="absolute inset-0 opacity-0 group-hover:opacity-30 transition-opacity duration-300">
+                              <div className="absolute inset-0 -translate-x-full animate-[shine_1.5s_ease-in-out_infinite] bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
+                            </div>
+                            
+                            <span className="relative flex items-center justify-center font-medium">
+                              {isSubmitting && (
+                                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                              )}
+                              {isSubmitting ? "Verifying..." : "Verify Code"}
+                            </span>
+                          </motion.button>
+                        </div>
+                      </motion.div>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            
+              <div className="mt-6 text-center">
+                <p className="text-sm text-gray-600">
+                  Don't have an account?{" "}
+                  <Link 
+                    href="/register" 
+                    className="font-medium text-indigo-600 hover:text-indigo-500 hover:underline transition-colors duration-200"
+                  >
+                    Sign up
+                  </Link>
+                </p>
+              </div>
+            </div>
+            
+            {/* Footer with security info */}
+            <div className="py-4 px-8 md:px-12 bg-gradient-to-b from-gray-50/90 to-gray-100/90 border-t border-gray-200/50 flex items-center justify-center rounded-b-[2.5rem]">
+              <LuShieldCheck className="w-4 h-4 mr-1.5 text-green-500" />
+              <span className="text-xs text-gray-500">Secure, encrypted connection</span>
             </div>
           </div>
-        </div>
-      </motion.div>
+        </motion.div>
+      </div>
     </div>
   );
 }
-
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <div className="flex flex-col items-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    }>
       <LoginPageContent />
     </Suspense>
   );
 }
+
