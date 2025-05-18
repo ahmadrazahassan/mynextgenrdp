@@ -3,25 +3,25 @@
 import React, { useRef, useEffect, useState, useMemo, useCallback } from 'react';
 import { motion, useReducedMotion, useAnimationControls } from 'framer-motion';
 
-// Memoized component for better performance
+// Highly optimized component with React.memo to prevent unnecessary re-renders
 const AnimatedCube = React.memo(() => {
-  // Refs to access DOM elements
+  // Essential refs
   const cubeRef = useRef(null);
   const containerRef = useRef(null);
   
-  // Check if user prefers reduced motion
+  // User preferences
   const prefersReducedMotion = useReducedMotion();
   
-  // Animation controls for more precise control
+  // Animation controls with better performance
   const cubeControls = useAnimationControls();
   
-  // State to track mouse position and animation settings
+  // Optimized state management
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [isInView, setIsInView] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
   
-  // Check device type
+  // Optimized device detection with fewer re-renders
   useEffect(() => {
     const checkIsMobile = () => {
       setIsMobile(window.innerWidth < 768);
@@ -29,19 +29,23 @@ const AnimatedCube = React.memo(() => {
     
     checkIsMobile();
     
-    // Use ResizeObserver for better performance than resize event
+    // Use ResizeObserver with dedicated options for better performance
     if (typeof ResizeObserver !== 'undefined') {
-      const resizeObserver = new ResizeObserver(checkIsMobile);
-      resizeObserver.observe(document.body);
+      const resizeObserver = new ResizeObserver(entries => {
+        if (!entries.length) return;
+        requestAnimationFrame(checkIsMobile);
+      });
+      
+      resizeObserver.observe(document.body, { box: 'border-box' });
       return () => resizeObserver.disconnect();
     } else {
-      // Fallback to resize event if ResizeObserver is not supported
-      window.addEventListener('resize', checkIsMobile);
+      // Optimize the resize event with passive flag
+      window.addEventListener('resize', checkIsMobile, { passive: true });
       return () => window.removeEventListener('resize', checkIsMobile);
     }
   }, []);
   
-  // Handle mouse movement with optimized performance using debounce
+  // Optimized mouse movement handler with better physics
   const handleMouseMove = useCallback((e) => {
     if (!containerRef.current || prefersReducedMotion) return;
     
@@ -49,43 +53,44 @@ const AnimatedCube = React.memo(() => {
     const centerX = rect.left + rect.width / 2;
     const centerY = rect.top + rect.height / 2;
     
-    // Calculate normalized mouse position relative to the center with smoother values
+    // More efficient position calculation with damping for smoother motion
     const x = (e.clientX - centerX) / (rect.width / 2);
     const y = (e.clientY - centerY) / (rect.height / 2);
     
-    // Apply lerp (linear interpolation) for smoother movement
     setMousePosition(prev => ({
-      x: prev.x + (x - prev.x) * 0.1,
-      y: prev.y + (y - prev.y) * 0.1
+      x: prev.x + (x - prev.x) * 0.08, // Smoother damping factor
+      y: prev.y + (y - prev.y) * 0.08
     }));
   }, [prefersReducedMotion]);
 
-  // Apply throttle to mouse move handler for better performance
-  const throttledMouseMove = useCallback(() => {
-    let lastCallTime = 0;
-    const throttleTime = 10; // More frequent updates for smoother feel
+  // High-performance throttling for mouse events using requestAnimationFrame
+  const optimizedMouseMove = useCallback(() => {
+    let ticking = false;
     
     return (e) => {
-      const now = Date.now();
-      if (now - lastCallTime < throttleTime) return;
-      lastCallTime = now;
+      if (ticking) return;
       
-      handleMouseMove(e);
+      ticking = true;
+      requestAnimationFrame(() => {
+        handleMouseMove(e);
+        ticking = false;
+      });
     };
   }, [handleMouseMove]);
   
-  // Run mouse position animation frame
+  // More efficient animation loop with optimized render cycles
   useEffect(() => {
-    if (prefersReducedMotion || !isInView || !isHovering) return;
+    if (prefersReducedMotion || !isInView) return;
     
     let animationFrameId;
     
     const updateRotation = () => {
       if (cubeRef.current) {
-        // Apply smooth transitions to cube rotation
-        const rotateX = isInView ? (mousePosition.y * 15) : 0;
-        const rotateY = isInView ? (-mousePosition.x * 15) : 0;
+        // Smoother rotation with acceleration and damping
+        const rotateX = isHovering ? (mousePosition.y * 12) : 0;
+        const rotateY = isHovering ? (-mousePosition.x * 12) : 0;
         
+        // Use transform with will-change for GPU acceleration
         cubeRef.current.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
       }
       
@@ -95,50 +100,57 @@ const AnimatedCube = React.memo(() => {
     updateRotation();
     
     return () => {
-      cancelAnimationFrame(animationFrameId);
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
     };
   }, [mousePosition, isInView, prefersReducedMotion, isHovering]);
   
-  // Set up intersection observer to only animate when in viewport
+  // High-performance intersection observer with optimized options
   useEffect(() => {
     if (!containerRef.current) return;
     
     const observer = new IntersectionObserver(
       (entries) => {
-        entries.forEach((entry) => {
-          setIsInView(entry.isIntersecting);
+        const [entry] = entries;
+        const isNowInView = entry.isIntersecting;
+        
+        if (isNowInView !== isInView) {
+          setIsInView(isNowInView);
           
-          // Start/stop animations based on visibility
-          if (entry.isIntersecting) {
+          if (isNowInView) {
             cubeControls.start("visible");
           } else {
             cubeControls.start("hidden");
           }
-        });
+        }
       },
-      { threshold: 0.1, rootMargin: '100px' }
+      { 
+        threshold: 0.1, 
+        rootMargin: '100px',
+        trackVisibility: true,
+        delay: 100 // Slight delay for more efficient processing
+      }
     );
     
     observer.observe(containerRef.current);
     
     return () => {
-      if (containerRef.current) {
-        observer.unobserve(containerRef.current);
-      }
+      observer.disconnect();
     };
-  }, [cubeControls]);
+  }, [cubeControls, isInView]);
   
-  // Memoized cube faces definition with improved colors
+  // Optimized and memoized cube faces with vibrant colors
   const faces = useMemo(() => [
-    { name: 'front', color: 'rgba(124, 58, 237, 0.85)', transform: 'translateZ(100px)' },   // Vibrant purple
-    { name: 'back', color: 'rgba(124, 58, 237, 0.85)', transform: 'rotateY(180deg) translateZ(100px)' },
-    { name: 'right', color: 'rgba(16, 185, 129, 0.85)', transform: 'rotateY(90deg) translateZ(100px)' },  // Emerald
-    { name: 'left', color: 'rgba(16, 185, 129, 0.85)', transform: 'rotateY(-90deg) translateZ(100px)' },
-    { name: 'top', color: 'rgba(37, 99, 235, 0.85)', transform: 'rotateX(90deg) translateZ(100px)' },    // Royal blue
-    { name: 'bottom', color: 'rgba(37, 99, 235, 0.85)', transform: 'rotateX(-90deg) translateZ(100px)' },
+    { name: 'front', color: 'rgba(124, 58, 237, 0.9)', transform: 'translateZ(100px)' },       // Vibrant purple
+    { name: 'back', color: 'rgba(124, 58, 237, 0.9)', transform: 'rotateY(180deg) translateZ(100px)' },
+    { name: 'right', color: 'rgba(16, 185, 129, 0.9)', transform: 'rotateY(90deg) translateZ(100px)' },    // Emerald
+    { name: 'left', color: 'rgba(16, 185, 129, 0.9)', transform: 'rotateY(-90deg) translateZ(100px)' },
+    { name: 'top', color: 'rgba(37, 99, 235, 0.9)', transform: 'rotateX(90deg) translateZ(100px)' },      // Royal blue
+    { name: 'bottom', color: 'rgba(37, 99, 235, 0.9)', transform: 'rotateX(-90deg) translateZ(100px)' },
   ], []);
 
-  // Advanced animation variants for smoother transitions
+  // High-performance animation variants with optimized timing
   const cubeAnimationVariants = {
     hidden: { 
       rotateX: 0, 
@@ -153,23 +165,23 @@ const AnimatedCube = React.memo(() => {
       opacity: 1,
       transition: {
         rotateX: { 
-          duration: 25, 
+          duration: 30, 
           ease: "linear", 
           repeat: Infinity,
           repeatType: "loop"
         },
         rotateY: { 
-          duration: 25, 
+          duration: 30, 
           ease: "linear", 
           repeat: Infinity,
           repeatType: "loop"
         },
         scale: { 
-          duration: 0.8, 
-          ease: "easeOut" 
+          duration: 0.6, 
+          ease: [0.34, 1.56, 0.64, 1] // Spring physics for smoother motion
         },
         opacity: { 
-          duration: 0.8, 
+          duration: 0.6, 
           ease: "easeOut" 
         }
       }
@@ -185,20 +197,20 @@ const AnimatedCube = React.memo(() => {
     }
   };
   
-  // Number of particles based on device for better performance
-  const particleCount = useMemo(() => isMobile ? 8 : 16, [isMobile]);
+  // Dynamically adjust particle count based on device capability
+  const particleCount = useMemo(() => isMobile ? 5 : 12, [isMobile]);
   
-  // Optimized glow positions
+  // Optimized glow animations with staggered timings for better performance
   const glowVariants = {
     hidden: { opacity: 0.2, scale: 0.8 },
     visible: (i) => ({
-      opacity: [0.3, 0.6, 0.3],
+      opacity: [0.3, 0.7, 0.3],
       scale: [0.8, 1.1, 0.8],
       transition: {
-        duration: 8 + i,
+        duration: 6 + i * 0.5,
         repeat: Infinity,
         ease: "easeInOut",
-        delay: i * 0.5
+        delay: i * 0.7
       }
     })
   };
@@ -207,71 +219,77 @@ const AnimatedCube = React.memo(() => {
     <div 
       ref={containerRef}
       className="w-full h-[500px] flex items-center justify-center perspective-[1200px] relative -mt-20" 
-      onMouseMove={throttledMouseMove()}
+      onMouseMove={optimizedMouseMove()}
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
       aria-hidden="true"
     >
-      {/* Background glow effects - Optimized with will-change */}
+      {/* Performance-optimized background effects with controlled re-renders */}
       <div className="absolute w-full h-full overflow-hidden pointer-events-none">
-        {/* Purple glow */}
-        <motion.div 
-          initial="hidden"
-          animate={isInView ? "visible" : "hidden"}
-          variants={glowVariants}
-          custom={0}
-          className="absolute top-1/2 left-1/2 w-64 h-64 rounded-full bg-purple-600/30 blur-3xl -z-10" 
-          style={{ 
-            x: '-50%', 
-            y: '-50%',
-            willChange: 'transform, opacity',
-          }}
-        />
-        
-        {/* Green glow */}
-        <motion.div 
-          initial="hidden"
-          animate={isInView ? "visible" : "hidden"}
-          variants={glowVariants}
-          custom={1}
-          className="absolute top-1/2 left-1/2 w-72 h-72 rounded-full bg-emerald-500/30 blur-3xl -z-10" 
-          style={{ 
-            x: '-50%', 
-            y: '-50%',
-            willChange: 'transform, opacity',
-          }}
-        />
-        
-        {/* Blue glow */}
-        <motion.div 
-          initial="hidden"
-          animate={isInView ? "visible" : "hidden"}
-          variants={glowVariants}
-          custom={2}
-          className="absolute top-1/2 left-1/2 w-56 h-56 rounded-full bg-blue-600/30 blur-3xl -z-10" 
-          style={{ 
-            x: '-50%', 
-            y: '-50%',
-            willChange: 'transform, opacity',
-          }}
-        />
+        {/* Optimized glow effects - only animate when in view */}
+        {isInView && (
+          <>
+            <motion.div 
+              initial="hidden"
+              animate="visible"
+              variants={glowVariants}
+              custom={0}
+              className="absolute top-1/2 left-1/2 w-64 h-64 rounded-full bg-purple-600/30 blur-3xl -z-10" 
+              style={{ 
+                x: '-50%', 
+                y: '-50%',
+                willChange: 'transform, opacity',
+                transform: 'translate3d(-50%, -50%, 0)',
+              }}
+            />
+            
+            <motion.div 
+              initial="hidden"
+              animate="visible"
+              variants={glowVariants}
+              custom={1}
+              className="absolute top-1/2 left-1/2 w-72 h-72 rounded-full bg-emerald-500/30 blur-3xl -z-10" 
+              style={{ 
+                x: '-50%', 
+                y: '-50%',
+                willChange: 'transform, opacity',
+                transform: 'translate3d(-50%, -50%, 0)',
+              }}
+            />
+            
+            <motion.div 
+              initial="hidden"
+              animate="visible"
+              variants={glowVariants}
+              custom={2}
+              className="absolute top-1/2 left-1/2 w-56 h-56 rounded-full bg-blue-600/30 blur-3xl -z-10" 
+              style={{ 
+                x: '-50%', 
+                y: '-50%',
+                willChange: 'transform, opacity',
+                transform: 'translate3d(-50%, -50%, 0)',
+              }}
+            />
+          </>
+        )}
       </div>
       
-      {/* Grid pattern - Optimized with opacity conditions */}
-      {!isMobile && (
+      {/* Optimized grid pattern - only render when necessary */}
+      {!isMobile && isInView && (
         <div className="absolute inset-0 opacity-5 pointer-events-none" 
           style={{ 
             backgroundImage: `
-              linear-gradient(rgba(255, 255, 255, 0.5) 1px, transparent 1px), 
-              linear-gradient(90deg, rgba(255, 255, 255, 0.5) 1px, transparent 1px)
+              linear-gradient(rgba(255, 255, 255, 0.4) 1px, transparent 1px), 
+              linear-gradient(90deg, rgba(255, 255, 255, 0.4) 1px, transparent 1px)
             `,
             backgroundSize: '20px 20px',
-            transform: 'translateZ(0)', // hardware acceleration
+            transform: 'translate3d(0, 0, 0)', // Force GPU acceleration
+            backfaceVisibility: 'hidden',
           }}
         />
       )}
       
-      {/* Cube wrapper with optimized animations */}
+      {/* Cube wrapper with hardware-accelerated animations */}
       <motion.div 
         className="preserve-3d"
         initial="hidden"
@@ -279,31 +297,35 @@ const AnimatedCube = React.memo(() => {
         whileHover="hover"
         variants={cubeAnimationVariants}
         style={{ 
-          willChange: 'transform',
+          willChange: 'transform, opacity',
           marginTop: "-60px",
+          transform: 'translate3d(0, 0, 0)',
+          backfaceVisibility: 'hidden',
         }}
       >
-        {/* Actual 3D cube */}
+        {/* Actual 3D cube with improved rendering performance */}
         <motion.div 
           ref={cubeRef}
           className="relative w-[220px] h-[220px] transform-style-3d"
           style={{ 
             willChange: 'transform',
             transformOrigin: 'center center',
-            transition: 'transform 0.1s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+            transform: 'translate3d(0, 0, 0) rotateX(0) rotateY(0)',
+            backfaceVisibility: 'hidden',
+            transition: 'transform 0.08s cubic-bezier(0.25, 0.46, 0.45, 0.94)' // Smoother transition
           }}
         >
-          {/* Enhanced cube glow effect */}
+          {/* Enhanced cube glow effect with performance optimizations */}
           <div 
-            className="absolute w-[220px] h-[220px] rounded-[14px] opacity-20"
+            className="absolute w-[220px] h-[220px] rounded-[14px] opacity-30"
             style={{
-              boxShadow: "0 0 40px 5px rgba(124, 58, 237, 0.6), 0 0 30px 10px rgba(16, 185, 129, 0.4), 0 0 20px 15px rgba(37, 99, 235, 0.4)",
-              transform: "translateZ(0px)",
+              boxShadow: "0 0 40px 5px rgba(124, 58, 237, 0.5), 0 0 30px 10px rgba(16, 185, 129, 0.3), 0 0 20px 15px rgba(37, 99, 235, 0.3)",
+              transform: "translateZ(0)",
             }}
           />
 
-          {/* Render each face of the cube with optimized corner effects */}
-          {faces.map((face, index) => (
+          {/* Render each face of the cube with optimized rendering */}
+          {faces.map((face) => (
             <motion.div
               key={face.name}
               className="absolute w-full h-full border border-white/30 backdrop-blur-sm"
@@ -312,49 +334,53 @@ const AnimatedCube = React.memo(() => {
                 backgroundColor: face.color,
                 backfaceVisibility: 'hidden',
                 transformStyle: 'preserve-3d',
-                borderRadius: "14px", // More perfect corner radius
-                boxShadow: "0 0 30px rgba(255, 255, 255, 0.15) inset",
-                willChange: 'transform',
+                borderRadius: "14px",
+                boxShadow: "0 0 30px rgba(255, 255, 255, 0.1) inset",
+                willChange: 'transform, opacity',
                 overflow: 'hidden',
+                perspective: 1000, // Boost 3D rendering
               }}
-              initial={{ opacity: 0.7 }}
+              initial={{ opacity: 0.8 }}
               animate={{ opacity: 1 }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
+              transition={{ duration: 0.6, ease: [0.34, 1.56, 0.64, 1] }}
             >
-              {/* Enhanced corner effects - perfect corners */}
+              {/* High-performance corner effects */}
               <div className="absolute inset-0 rounded-[14px] overflow-hidden">
-                {/* Corner highlight - top left */}
-                <div className="absolute -top-1 -left-1 w-12 h-12 rounded-br-3xl bg-white/10" />
+                {/* Optimized corner highlights */}
+                <div className="absolute -top-1 -left-1 w-12 h-12 rounded-br-3xl bg-white/15" />
+                <div className="absolute -bottom-1 -right-1 w-12 h-12 rounded-tl-3xl bg-white/15" />
                 
-                {/* Corner highlight - bottom right */}
-                <div className="absolute -bottom-1 -right-1 w-12 h-12 rounded-tl-3xl bg-white/10" />
-                
-                {/* Edge glow - optimized for better appearance */}
+                {/* Optimized edge glow with better GPU utilization */}
                 <div 
-                  className="absolute inset-0 rounded-[14px] opacity-50"
+                  className="absolute inset-0 rounded-[14px] opacity-60"
                   style={{
-                    background: `linear-gradient(135deg, ${face.color.replace('0.85', '1')} 0%, transparent 60%)`,
-                    boxShadow: "inset 0 0 15px rgba(255, 255, 255, 0.2)",
+                    background: `linear-gradient(135deg, ${face.color.replace('0.9', '1')} 0%, transparent 60%)`,
+                    boxShadow: "inset 0 0 20px rgba(255, 255, 255, 0.15)",
+                    transform: 'translate3d(0, 0, 0)',
                   }}
                 />
                 
-                {/* Additional light refraction effect */}
+                {/* Optimized light effect with better performance */}
                 <div 
-                  className="absolute inset-0 opacity-30" 
+                  className="absolute inset-0 opacity-25" 
                   style={{
-                    background: `radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.4) 0%, transparent 70%)`,
+                    background: `radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.5) 0%, transparent 70%)`,
+                    transform: 'translate3d(0, 0, 0)',
                   }}
                 />
               </div>
 
-              {/* Content for each face - optimized with lighter elements */}
+              {/* Optimized content for each face */}
               <div className="w-full h-full flex flex-col items-center justify-center p-4 text-white">
-                {/* Display logo on front face */}
+                {/* Front face content - simplified for better performance */}
                 {face.name === 'front' && (
                   <>
                     <motion.div 
                       className="text-2xl font-bold tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-white to-purple-200 pb-1"
-                      style={{ textShadow: "0 0 15px rgba(255, 255, 255, 0.3)" }}
+                      style={{ 
+                        textShadow: "0 0 15px rgba(255, 255, 255, 0.3)",
+                        transform: 'translate3d(0, 0, 0)',
+                      }}
                       initial={{ y: 5, opacity: 0 }}
                       animate={{ y: 0, opacity: 1 }}
                       transition={{ duration: 0.4, delay: 0.1 }}
@@ -372,12 +398,15 @@ const AnimatedCube = React.memo(() => {
                   </>
                 )}
                 
-                {/* Display website name on back face */}
+                {/* Back face content - simplified for better performance */}
                 {face.name === 'back' && (
                   <>
                     <motion.div 
                       className="text-xl font-bold tracking-wider bg-clip-text text-transparent bg-gradient-to-b from-white to-purple-200"
-                      style={{ textShadow: "0 0 15px rgba(255, 255, 255, 0.3)" }}
+                      style={{ 
+                        textShadow: "0 0 15px rgba(255, 255, 255, 0.3)",
+                        transform: 'translate3d(0, 0, 0)',
+                      }}
                       initial={{ y: 5, opacity: 0 }}
                       animate={{ y: 0, opacity: 1 }}
                       transition={{ duration: 0.4, delay: 0.1 }}
@@ -395,7 +424,7 @@ const AnimatedCube = React.memo(() => {
                   </>
                 )}
                 
-                {/* Icon faces with optimized SVGs */}
+                {/* Icon faces - optimized SVGs */}
                 {face.name !== 'front' && face.name !== 'back' && (
                   <div className="flex flex-col items-center">
                     {face.name === 'right' && (
@@ -407,6 +436,7 @@ const AnimatedCube = React.memo(() => {
                           fill="none" 
                           xmlns="http://www.w3.org/2000/svg"
                           className="text-white"
+                          style={{ transform: 'translate3d(0, 0, 0)' }}
                           initial={{ scale: 0.8, opacity: 0 }}
                           animate={{ scale: 1, opacity: 1 }}
                           transition={{ duration: 0.5, delay: 0.1 }}
@@ -433,6 +463,7 @@ const AnimatedCube = React.memo(() => {
                           fill="none" 
                           xmlns="http://www.w3.org/2000/svg"
                           className="text-white"
+                          style={{ transform: 'translate3d(0, 0, 0)' }}
                           initial={{ scale: 0.8, opacity: 0 }}
                           animate={{ scale: 1, opacity: 1 }}
                           transition={{ duration: 0.5, delay: 0.1 }}
@@ -460,6 +491,7 @@ const AnimatedCube = React.memo(() => {
                           fill="none" 
                           xmlns="http://www.w3.org/2000/svg"
                           className="text-white"
+                          style={{ transform: 'translate3d(0, 0, 0)' }}
                           initial={{ scale: 0.8, opacity: 0 }}
                           animate={{ scale: 1, opacity: 1 }}
                           transition={{ duration: 0.5, delay: 0.1 }}
@@ -489,6 +521,7 @@ const AnimatedCube = React.memo(() => {
                           fill="none" 
                           xmlns="http://www.w3.org/2000/svg"
                           className="text-white"
+                          style={{ transform: 'translate3d(0, 0, 0)' }}
                           initial={{ scale: 0.8, opacity: 0 }}
                           animate={{ scale: 1, opacity: 1 }}
                           transition={{ duration: 0.5, delay: 0.1 }}
@@ -504,132 +537,73 @@ const AnimatedCube = React.memo(() => {
                           animate={{ y: 0, opacity: 1 }}
                           transition={{ duration: 0.4, delay: 0.2 }}
                         >
-                          Easy Scalability
+                          Scalable Solutions
                         </motion.div>
                       </>
                     )}
                   </div>
                 )}
-                
-                {/* Subtle glow effect on text content */}
-                <div className="absolute inset-0 pointer-events-none">
-                  <div className="absolute inset-0" style={{ 
-                    background: `radial-gradient(circle at center, ${face.color.replace('0.85', '0.95')} 0%, ${face.color} 80%)`,
-                    mixBlendMode: 'overlay',
-                  }} />
-                </div>
               </div>
             </motion.div>
           ))}
         </motion.div>
-        
-        {/* Enhanced reflective surface below with motion */}
-        <motion.div 
-          className="mt-28 w-[220px] h-[15px] rounded-full blur-md transform -rotate-x-60"
-          style={{ 
-            background: 'linear-gradient(to right, transparent, rgba(255, 255, 255, 0.3), transparent)',
-            willChange: 'opacity',
-          }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: isInView ? [0.2, 0.5, 0.2] : 0 }}
-          transition={{ 
-            duration: 4, 
-            repeat: Infinity, 
-            ease: "easeInOut" 
-          }}
-        />
       </motion.div>
-      
-      {/* Optimized orbiting particles with animation variants */}
-      {!prefersReducedMotion && Array.from({ length: particleCount }).map((_, i) => {
-        const angle = (i / particleCount) * Math.PI * 2;
-        const radius = 180;
-        const baseX = Math.cos(angle) * radius;
-        const baseY = Math.sin(angle) * radius;
-        
-        const colors = ['#a855f7', '#10b981', '#3b82f6']; // Purple, emerald, blue
-        const color = colors[i % 3];
-        
-        // Particle animation variants
-        const particleVariants = {
-          hidden: { 
-            x: 0, 
-            y: 0, 
-            opacity: 0,
-            scale: 0
-          },
-          visible: {
-            x: [baseX * 0.8, baseX, baseX * 1.1, baseX],
-            y: [baseY * 0.8, baseY, baseY * 1.1, baseY],
-            opacity: [0.4, 0.8, 0.6, 0.4],
-            scale: [0.8, 1.2, 1, 0.8],
-            transition: {
-              duration: 5 + (i % 5),
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: i * 0.1
-            }
-          }
-        };
-        
-        return (
-          <motion.div
-            key={`particle-${i}`}
-            className="absolute rounded-full"
-            style={{
-              width: Math.max(3, 5 - (i % 3)), // Varied particle sizes
-              height: Math.max(3, 5 - (i % 3)),
-              backgroundColor: color,
-              boxShadow: `0 0 ${8 + (i % 5)}px ${color}`,
-              left: '50%',
-              top: '50%',
-              marginTop: "-60px",
-              willChange: 'transform, opacity',
-              opacity: 0, // Start hidden
-              zIndex: i % 2 === 0 ? -1 : 1, // Some in front, some behind
-            }}
-            variants={particleVariants}
-            initial="hidden"
-            animate={isInView ? "visible" : "hidden"}
-          />
-        );
-      })}
-      
-      {/* Add necessary CSS for 3D transforms */}
-      <style jsx global>{`
-        .preserve-3d {
-          transform-style: preserve-3d;
-          will-change: transform;
-        }
-        
-        .transform-style-3d {
-          transform-style: preserve-3d;
-        }
-        
-        .perspective-1000 {
-          perspective: 1000px;
-        }
-        
-        .perspective-1200px {
-          perspective: 1200px;
-        }
-        
-        .-rotate-x-60 {
-          transform: rotateX(-60deg);
-        }
-        
-        @media (prefers-reduced-motion: reduce) {
-          .preserve-3d, .transform-style-3d {
-            transition: none !important;
-            animation: none !important;
-          }
-        }
-      `}</style>
+
+      {/* Floating particles - optimized for performance with reduced count */}
+      {isInView && !prefersReducedMotion && (
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          {Array.from({ length: particleCount }).map((_, index) => {
+            const size = Math.random() * 4 + 2;
+            const offsetX = (Math.random() - 0.5) * 400;
+            const offsetY = (Math.random() - 0.5) * 400;
+            const duration = Math.random() * 10 + 15;
+            const delay = Math.random() * 5;
+            
+            const colors = [
+              'rgba(124, 58, 237, 0.6)',  // Purple
+              'rgba(16, 185, 129, 0.6)',  // Emerald
+              'rgba(37, 99, 235, 0.6)',   // Blue
+            ];
+            
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            
+            return (
+              <motion.div
+                key={index}
+                className="absolute rounded-full"
+                style={{
+                  width: size,
+                  height: size,
+                  backgroundColor: color,
+                  top: '50%',
+                  left: '50%',
+                  x: offsetX,
+                  y: offsetY,
+                  opacity: 0,
+                  willChange: 'transform, opacity',
+                  transform: 'translate3d(0, 0, 0)',
+                }}
+                animate={{
+                  scale: [0, 1, 0],
+                  opacity: [0, 0.8, 0],
+                  x: [offsetX, offsetX + (Math.random() - 0.5) * 100],
+                  y: [offsetY, offsetY + (Math.random() - 0.5) * 100],
+                }}
+                transition={{
+                  duration: duration,
+                  delay: delay,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+              />
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 });
 
-// Add display name for better debugging
 AnimatedCube.displayName = 'AnimatedCube';
 
 export default AnimatedCube; 
