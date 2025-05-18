@@ -254,20 +254,54 @@ const HeroSection = () => {
               variants={itemVariants}
               className="inline-flex mb-6"
             >
-              <div className="inline-flex items-center gap-x-2 bg-slate-800/80 backdrop-blur-sm rounded-full px-1 pr-4 border border-purple-500/30 shadow-lg">
-                <motion.span 
-                  className="flex items-center justify-center h-8 w-8 bg-gradient-to-br from-purple-500 to-violet-600 rounded-full"
+              <div className="inline-flex items-center gap-x-2 px-1 pr-3 relative group">
+                {/* Animated background with pulse */}
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-600/80 via-indigo-600/80 to-violet-600/80 rounded-full blur-[1px] opacity-90 group-hover:opacity-100 transition-all duration-300"></div>
+                
+                {/* Animated border */}
+                <motion.div 
+                  className="absolute inset-0 rounded-full border border-purple-400/50"
                   animate={{ 
-                    rotate: [0, 10, 0, -10, 0],
-                    scale: [1, 1.1, 1]
+                    boxShadow: ['0 0 0px rgba(167, 139, 250, 0.3)', '0 0 15px rgba(167, 139, 250, 0.7)', '0 0 0px rgba(167, 139, 250, 0.3)']
                   }}
-                  transition={{ duration: 3, repeat: Infinity, repeatDelay: 1 }}
-                >
-                  <TagIcon className="h-4 w-4 text-white" />
-                </motion.span>
-                <p className="text-xs font-semibold text-slate-200">
-                  Limited Offer: <span className="font-bold text-purple-400">{discount} OFF!</span> Code: <span className="font-bold tracking-wide text-purple-400">{promoCode}</span>
-                </p>
+                  transition={{ duration: 2, repeat: Infinity }}
+                ></motion.div>
+                
+                {/* Content */}
+                <div className="relative flex items-center py-1.5 pl-1 pr-3">
+                  <motion.div 
+                    className="flex items-center justify-center h-8 w-8 bg-white/90 rounded-full mr-2 overflow-hidden shadow-md"
+                    animate={{ 
+                      rotate: [0, 10, 0, -10, 0],
+                      scale: [1, 1.1, 1]
+                    }}
+                    transition={{ duration: 3, repeat: Infinity, repeatDelay: 1 }}
+                  >
+                    <SparklesIcon className="h-5 w-5 text-purple-600" />
+                  </motion.div>
+                  
+                  <div className="flex flex-col">
+                    <p className="text-xs font-bold uppercase tracking-wide text-white">Limited Time Offer</p>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-sm md:text-base font-extrabold text-white">{discount} OFF</span>
+                      <span className="px-2 py-0.5 bg-white/90 rounded-md text-xs md:text-sm font-black text-purple-700 tracking-wider shadow-sm">
+                        {promoCode}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  {/* Animated star icon */}
+                  <motion.div 
+                    className="absolute -right-2 -top-2"
+                    animate={{ 
+                      rotate: [0, 20, 0, -20, 0],
+                      scale: [1, 1.2, 1]
+                    }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                  >
+                    <StarIcon className="h-5 w-5 text-yellow-300 drop-shadow-md" />
+                  </motion.div>
+                </div>
               </div>
             </motion.div>
             
