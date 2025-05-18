@@ -158,6 +158,7 @@ model Media {
   tags          Json
   orderId       String?
   uploadDate    DateTime    @default(now())
+  storageType   String?     @default("local")
 }
 
 enum TicketStatus {

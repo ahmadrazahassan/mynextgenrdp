@@ -44,7 +44,7 @@ const PaymentProofUpload: React.FC<PaymentProofUploadProps> = ({
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [successInfo, setSuccessInfo] = useState<{ url: string; name: string } | null>(null);
+  const [successInfo, setSuccessInfo] = useState<{ url: string; name: string; storageType?: string } | null>(null);
 
   const clearState = (keepSuccess = false) => {
     setFile(null);
@@ -115,7 +115,16 @@ const PaymentProofUpload: React.FC<PaymentProofUploadProps> = ({
     const formData = new FormData();
     formData.append('file', file);
     formData.append('userId', user.id); // Always include userId
-    if (orderId) formData.append('orderId', orderId); // Optionally include orderId
+    
+    // Don't mark as an order screenshot to use Azure storage
+    // formData.append('isOrderScreenshot', 'true'); 
+    
+    if (orderId) {
+      formData.append('orderId', orderId); // Include orderId if available
+    } else {
+      // If somehow no orderId is provided, create a temporary one
+      formData.append('orderId', `temp-${Date.now()}`);
+    }
 
     try {
       // NOTE: Standard fetch doesn't support progress easily.
@@ -137,7 +146,11 @@ const PaymentProofUpload: React.FC<PaymentProofUploadProps> = ({
         throw new Error(result.error || 'Upload failed');
       }
       
-      setSuccessInfo({ url: result.url, name: result.originalName || file.name });
+      setSuccessInfo({ 
+        url: result.url, 
+        name: result.originalName || file.name,
+        storageType: result.storageType || 'unknown'
+      });
       onUploadSuccess(result.url, result.originalName || file.name);
       setFile(null); // Clear the file state after successful upload
 
@@ -196,7 +209,7 @@ const PaymentProofUpload: React.FC<PaymentProofUploadProps> = ({
           <div className="flex items-center space-x-3 min-w-0">
             <CheckCircle className="h-6 w-6 text-green-600 flex-shrink-0" />
             <div className="min-w-0">
-                <p className="text-sm font-medium text-green-800">Proof Uploaded:</p>
+                <p className="text-sm font-medium text-green-800">Proof Uploaded{successInfo.storageType === 'azure' ? ' to Azure' : ''}:</p>
                 <p className="text-xs text-gray-600 truncate" title={successInfo.name}>{successInfo.name}</p>
             </div>
            </div>
@@ -223,7 +236,7 @@ const PaymentProofUpload: React.FC<PaymentProofUploadProps> = ({
             isUploading ? (
               <div className="flex flex-col items-center justify-center text-indigo-600">
                  <Loader2 className="h-10 w-10 sm:h-12 sm:w-12 mx-auto animate-spin mb-3" />
-                 <p className="text-sm sm:text-base font-medium">Uploading...</p>
+                 <p className="text-sm sm:text-base font-medium">Uploading to Azure...</p>
                  {uploadProgress !== null && (
                      <Progress value={uploadProgress} className="w-3/4 mt-3 h-1.5 bg-gray-200" />
                  )}

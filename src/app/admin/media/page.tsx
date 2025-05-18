@@ -60,6 +60,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import { Toaster } from 'react-hot-toast';
+import RecentMediaDisplay from '@/components/admin/RecentMediaDisplay';
 
 // Define media item interface
 interface MediaItem {
@@ -75,6 +76,7 @@ interface MediaItem {
   status: "approved" | "pending" | "rejected" | "flagged";
   tags: string[];
   orderId?: string;
+  storageType?: string;
 }
 
 export default function AdminMediaPage() {
@@ -362,6 +364,28 @@ export default function AdminMediaPage() {
     }
   };
 
+  // Add a function to handle direct image URLs without Backblaze
+  const getDirectImageUrl = (item: MediaItem) => {
+    // The path already contains a direct URL (local storage) or a SAS token URL (Azure storage)
+    return item.path;
+  };
+  
+  // Handle direct download with proper URL
+  const handleDownload = (item: MediaItem) => {
+    const downloadUrl = item.path;
+    
+    // Create temporary link element for download
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = item.fileName;
+    link.target = '_blank';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    showToast('success', `Downloading ${item.fileName}...`);
+  };
+
   return (
     <div className="flex-1 space-y-4 p-6 bg-gradient-to-br from-white via-sky-50 to-indigo-50 min-h-screen">
       {/* Page header */}
@@ -418,12 +442,18 @@ export default function AdminMediaPage() {
             )}
             {viewMode === "grid" ? "List View" : "Grid View"}
           </Button>
-          <Button className="bg-sky-600 hover:bg-sky-700 text-white">
-            <ImagePlus className="h-4 w-4 mr-2" />
-            Upload New Image
+          <Button 
+            className="bg-sky-600 hover:bg-sky-700 text-white" 
+            onClick={refreshMediaItems}
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Refresh Media
           </Button>
         </div>
       </div>
+
+      {/* Add RecentMediaDisplay component */}
+      <RecentMediaDisplay />
 
       {/* Search and filters */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_auto]">
@@ -551,15 +581,20 @@ export default function AdminMediaPage() {
                       />
                     </div>
                     <div
-                      className="aspect-square bg-gray-100 relative"
+                      className="aspect-square bg-gray-100 relative cursor-pointer"
                       onClick={() => handleViewItem(item)}
                     >
                       {item.fileType.startsWith('image/') ? (
                         <img
-                          src={item.path}
+                          src={getDirectImageUrl(item)}
                           alt={item.fileName}
                           className="absolute inset-0 w-full h-full object-cover"
                           style={{ objectFit: 'cover' }}
+                          loading="lazy"
+                          onError={(e) => {
+                            // Handle broken images
+                            e.currentTarget.src = 'data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22100%22%20height%3D%22100%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20fill%3D%22%23f5f5f5%22%2F%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20font-family%3D%22sans-serif%22%20font-size%3D%2212px%22%20text-anchor%3D%22middle%22%20alignment-baseline%3D%22middle%22%20fill%3D%22%23aaa%22%3EImage%20not%20available%3C%2Ftext%3E%3C%2Fsvg%3E';
+                          }}
                         />
                       ) : (
                         <div className="absolute inset-0 flex items-center justify-center bg-gray-200">
@@ -623,17 +658,21 @@ export default function AdminMediaPage() {
                           variant="outline"
                           size="sm"
                           className="h-8 w-8 p-0 bg-white/80 hover:bg-white border-0"
-                          asChild
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDownload(item);
+                          }}
                         >
-                          <a href={item.path} download target="_blank" rel="noopener noreferrer">
-                            <Download className="h-4 w-4" />
-                          </a>
+                          <Download className="h-4 w-4" />
                         </Button>
                         <Button
                           variant="outline"
                           size="sm"
                           className="h-8 w-8 p-0 bg-white/80 hover:bg-white text-red-500 hover:text-red-600 border-0"
-                          onClick={(e) => e.stopPropagation()}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(item);
+                          }}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -686,7 +725,7 @@ export default function AdminMediaPage() {
                           <div className="h-10 w-10 bg-gray-200 rounded flex items-center justify-center mr-3">
                             {item.fileType.startsWith('image/') ? (
                               <img
-                                src={item.path}
+                                src={getDirectImageUrl(item)}
                                 alt={item.fileName}
                                 className="h-5 w-5 object-cover"
                               />
@@ -835,13 +874,24 @@ export default function AdminMediaPage() {
                 <div className="flex-1 min-h-0 overflow-y-auto">
                   <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr] gap-0 py-0">
                     {/* Image preview */}
-                    <div className="flex items-center justify-center min-h-[400px] bg-white p-8">
+                    <div className="flex items-center justify-center min-h-[400px] bg-white p-8 overflow-hidden">
                       {selectedImage?.fileType.startsWith('image/') ? (
                         <img
-                          src={selectedImage.path}
-                          alt={selectedImage.fileName}
+                          src={selectedImage ? getDirectImageUrl(selectedImage) : ''}
+                          alt={selectedImage?.fileName}
                           className="max-h-[500px] max-w-full object-contain rounded-lg border border-gray-200 shadow-lg bg-white"
-                          style={{ background: 'white' }}
+                          onError={(e) => {
+                            // If image fails to load, show a fallback message
+                            e.currentTarget.style.display = 'none';
+                            const fallback = document.createElement('div');
+                            fallback.className = 'flex flex-col items-center justify-center p-6 text-center';
+                            fallback.innerHTML = `
+                              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400 mb-2"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"></path><circle cx="12" cy="13" r="3"></circle></svg>
+                              <p class="text-gray-500">Image could not be loaded</p>
+                              <p class="text-gray-400 text-sm mt-1">The image may no longer be available or the URL might be invalid.</p>
+                            `;
+                            e.currentTarget.parentNode?.appendChild(fallback);
+                          }}
                         />
                       ) : (
                         <div className="flex flex-col items-center justify-center">
@@ -970,11 +1020,15 @@ export default function AdminMediaPage() {
                       Close
                     </Button>
                     {selectedImage && (
-                      <Button className="bg-sky-600 hover:bg-sky-700 text-white font-semibold shadow" asChild>
-                        <a href={selectedImage.path} download target="_blank" rel="noopener noreferrer">
-                          <Download className="h-4 w-4 mr-2" />
-                          Download
-                        </a>
+                      <Button className="bg-sky-600 hover:bg-sky-700 text-white font-semibold shadow"
+                        onClick={() => {
+                          if (selectedImage) {
+                            handleDownload(selectedImage);
+                          }
+                        }}
+                      >
+                        <Download className="h-4 w-4 mr-2" />
+                        Download
                       </Button>
                     )}
                   </div>
