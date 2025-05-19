@@ -260,11 +260,13 @@ const Footer = () => {
       { text: 'Terms of Service', href: '/terms' },
       { text: 'Privacy Policy', href: '/privacy' },
       { text: 'About Us', href: '/about' },
+      { text: 'Blog', href: '/blog' },
     ], []);
     
     const productLinks = useMemo(() => [
       { text: 'Windows RDP', href: '/rdp' },
       { text: 'Linux VPS', href: '/vps' },
+      { text: 'Blog', href: '/blog' },
       { text: 'Enterprise Solutions', href: '/enterprise' },
       { text: 'Pricing Plans', href: '/pricing' },
       { text: 'API Access', href: '/api' },
@@ -451,16 +453,28 @@ const Footer = () => {
                   </div>
                 </div>
                 
-                {/* Support Links */}
+                {/* Products Links */}
                 <div>
-                  <FooterTitle>Support</FooterTitle>
+                  <FooterTitle>Products</FooterTitle>
                   <div className="space-y-3">
-                    {supportLinks.map((link, index) => (
+                    {productLinks.map((link, index) => (
                       <FooterLink key={link.href} href={link.href} delay={index}>
                         {link.text}
                       </FooterLink>
                     ))}
                   </div>
+                </div>
+              </div>
+              
+              {/* Support Links (Second Row) */}
+              <div className="mt-8">
+                <FooterTitle>Support</FooterTitle>
+                <div className="space-y-3">
+                  {supportLinks.map((link, index) => (
+                    <FooterLink key={link.href} href={link.href} delay={index}>
+                      {link.text}
+                    </FooterLink>
+                  ))}
                 </div>
               </div>
             </div>
