@@ -34,22 +34,31 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
     if (!email || !password) {
       const errMsg = 'Email and password are required.';
       setFormError(errMsg); // Set inline error
-      // toast({ title: "Login Error", description: errMsg, variant: "destructive" }); // Keep toast optional or remove if inline is enough
       setIsLoading(false);
       return;
     }
 
     try {
       await login({ email, password });
-      // Login success is handled by AuthProvider updating state
-      toast({ title: "Login Successful", description: "Welcome back!" }); // Optional success toast
-      if (onLoginSuccess) onLoginSuccess(); 
+      
+      // Show success toast
+      toast({ 
+        title: "Login Successful", 
+        description: "Welcome back!" 
+      });
+      
+      // Call the onLoginSuccess callback if provided
+      if (onLoginSuccess) {
+        setTimeout(() => {
+          onLoginSuccess();
+        }, 100); // Small delay to ensure state updates properly
+      }
     } catch (err: any) {
       const errorMsg = err.message || 'Login failed. Please check your credentials.';
       setFormError(errorMsg); // Set inline error
-      // toast({ title: "Login Failed", description: errorMsg, variant: "destructive" }); // Keep toast optional or remove if inline is enough
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   return (

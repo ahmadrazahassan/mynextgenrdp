@@ -239,7 +239,17 @@ export default function OrderPage() {
   const handleAuthSuccess = () => {
     // If user logs in/registers successfully on the account page, move them to payment
     if (currentStep === 'account') {
-        goToNextStep();
+      // Add a small delay to ensure auth state is updated before proceeding
+      setTimeout(() => {
+        if (isAuthenticated) {
+          toast({
+            title: "Authentication Successful",
+            description: "Proceeding to payment information...",
+            duration: 3000
+          });
+          goToNextStep();
+        }
+      }, 500); // Give time for auth state to update
     }
   }
 
@@ -380,38 +390,41 @@ export default function OrderPage() {
                                <CardDescription>Log in or create an account to associate this order.</CardDescription>
                              </CardHeader>
                              <CardContent>
-                                {isAuthenticated ? (
-                                     // If user is authenticated, show their info
-                                    <UserDisplay />
+                                {isAuthLoading ? (
+                                  <div className="flex justify-center items-center py-8">
+                                    <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+                                    <span className="ml-2 text-gray-600">Verifying authentication...</span>
+                                  </div>
+                                ) : isAuthenticated ? (
+                                  // If user is authenticated, show their info
+                                  <UserDisplay />
                                 ) : (
-                                   // If user is NOT authenticated, always show login/register options
-                                   // The initial page load spinner handles the very first auth check.
-                                   // Loading during login/register attempts is handled within the forms.
-                                   <div className="space-y-4">
-                                      <div className="flex border-b border-gray-200">
-                                         {/* Login/Register Tabs/Buttons */}
-                                        <button 
-                                          onClick={() => setAuthFormMode('login')} 
-                                          className={`py-3 px-5 font-semibold transition-all 
-                                            ${authFormMode === 'login' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-500 hover:text-gray-800 hover:border-b-2 hover:border-gray-300'}`}
-                                        >
-                                          Log In
-                                        </button>
-                                        <button 
-                                          onClick={() => setAuthFormMode('register')} 
-                                          className={`py-3 px-5 font-semibold transition-all 
-                                            ${authFormMode === 'register' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-500 hover:text-gray-800 hover:border-b-2 hover:border-gray-300'}`}
-                                        >
-                                          Create Account
-                                        </button>
-                                      </div>
-                                      <div className="pt-4">
-                                        {authFormMode === 'login' ? 
-                                            <LoginForm onLoginSuccess={handleAuthSuccess} /> : 
-                                            <RegisterForm onRegisterSuccess={handleAuthSuccess} />
-                                        }
-                                       </div>
+                                  // If user is NOT authenticated, show login/register options
+                                  <div className="space-y-4">
+                                    <div className="flex border-b border-gray-200">
+                                      {/* Login/Register Tabs/Buttons */}
+                                      <button 
+                                        onClick={() => setAuthFormMode('login')} 
+                                        className={`py-3 px-5 font-semibold transition-all 
+                                          ${authFormMode === 'login' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-500 hover:text-gray-800 hover:border-b-2 hover:border-gray-300'}`}
+                                      >
+                                        Log In
+                                      </button>
+                                      <button 
+                                        onClick={() => setAuthFormMode('register')} 
+                                        className={`py-3 px-5 font-semibold transition-all 
+                                          ${authFormMode === 'register' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-500 hover:text-gray-800 hover:border-b-2 hover:border-gray-300'}`}
+                                      >
+                                        Create Account
+                                      </button>
                                     </div>
+                                    <div className="pt-4">
+                                      {authFormMode === 'login' ? 
+                                          <LoginForm onLoginSuccess={handleAuthSuccess} /> : 
+                                          <RegisterForm onRegisterSuccess={handleAuthSuccess} />
+                                      }
+                                    </div>
+                                  </div>
                                 )}
                              </CardContent>
                            </Card>
@@ -466,7 +479,8 @@ export default function OrderPage() {
                                <CardDescription>Please review all your order details carefully before placing the order.</CardDescription>
                              </CardHeader>
                              <CardContent>
-                                {/* Add checks similar to payment step, but render ReviewSummary if all good */} 
+                                {/* Add checks similar to payment step, but render ReviewSummary if all good */ 
+                                }
                                 {!isAuthenticated ? (
                                     <div className="p-4 bg-yellow-50 border border-yellow-300 rounded-md flex items-center space-x-3 mb-6">
                                        {/* ... Auth required message ... */} 

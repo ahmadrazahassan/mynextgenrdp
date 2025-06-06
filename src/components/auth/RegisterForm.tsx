@@ -20,7 +20,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess }) => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [formError, setFormError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const { register, error: authError, clearError } = useAuth();
+  const { register, login, error: authError, clearError } = useAuth();
   const { toast } = useToast();
 
   const handleFieldChange = () => {
@@ -36,29 +36,47 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess }) => {
     if (!fullName || !email || !password || !confirmPassword) {
       const errMsg = 'All fields are required.';
       setFormError(errMsg);
-      toast({ title: "Registration Error", description: errMsg, variant: "destructive" });
       setIsLoading(false);
       return;
     }
     if (password !== confirmPassword) {
       const errMsg = 'Passwords do not match.';
       setFormError(errMsg);
-      toast({ title: "Registration Error", description: errMsg, variant: "destructive" });
       setIsLoading(false);
       return;
     }
     // Add more password validation if needed (length, complexity)
 
     try {
+      // Register the user
       await register({ fullName, email, password });
-      toast({ title: "Registration Successful", description: "Please check your email for verification if required, then log in." });
-      if (onRegisterSuccess) onRegisterSuccess();
+      
+      // After successful registration, also log them in
+      try {
+        await login({ email, password });
+      } catch (loginErr) {
+        console.error("Auto-login after registration failed:", loginErr);
+        // Continue with success flow even if auto-login fails
+      }
+      
+      // Show success toast
+      toast({ 
+        title: "Registration Successful", 
+        description: "Your account has been created." 
+      });
+      
+      // Call the success callback with a small delay to ensure state updates
+      if (onRegisterSuccess) {
+        setTimeout(() => {
+          onRegisterSuccess();
+        }, 100);
+      }
     } catch (err: any) {
       const errorMsg = err.message || 'Registration failed. Please try again.';
       setFormError(errorMsg);
-      toast({ title: "Registration Failed", description: errorMsg, variant: "destructive" });
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   return (
