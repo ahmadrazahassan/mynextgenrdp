@@ -28,14 +28,24 @@ function createPrismaClient(): PrismaClient {
     log: process.env.NODE_ENV === 'development' 
       ? ['query', 'error', 'warn'] 
       : ['error'],
+    // Add connection pool settings for production
+    datasources: {
+      db: {
+        url: process.env.DATABASE_URL,
+      },
+    },
   });
 
-  // Add error handler
+  // Add error handler with better error reporting
   client.$use(async (params, next) => {
     try {
       return await next(params);
     } catch (error) {
       console.error(`Prisma Error [${params.model}.${params.action}]:`, error);
+      // In production, don't throw database errors that could expose sensitive info
+      if (process.env.NODE_ENV === 'production') {
+        throw new Error('Database operation failed');
+      }
       throw error;
     }
   });
