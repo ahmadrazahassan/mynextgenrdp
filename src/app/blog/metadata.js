@@ -1,14 +1,14 @@
 export const metadata = {
   title: 'Windows Hosting Insights: RDP & VPS Tips | NextGen Web Blog',
   description: 'Expert tutorials, guides, and tips about Windows RDP and VPS hosting, server optimization, and cybersecurity from NextGen Web specialists.',
-  keywords: ['Windows hosting blog', 'RDP tutorials', 'VPS guides', 'server management', 'hosting tips', 'Windows Server optimization', 'cloud hosting best practices'],
+  keywords: ['Windows hosting blog', 'RDP tutorials', 'VPS guides', 'server management', 'hosting tips', 'free vps', 'free rdp'],
   alternates: {
     canonical: '/blog',
   },
   openGraph: {
     title: 'Windows Hosting Insights: RDP & VPS Tips | NextGen Web Blog',
     description: 'Expert tutorials, guides, and tips about Windows RDP and VPS hosting, server optimization, and cybersecurity from NextGen Web specialists.',
-    url: 'https://nextgenweb.com/blog',
+    url: 'https://nextgenrdp.com/blog',
     type: 'website',
     images: [
       {

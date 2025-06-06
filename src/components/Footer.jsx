@@ -453,28 +453,16 @@ const Footer = () => {
                   </div>
                 </div>
                 
-                {/* Products Links */}
+                {/* Support Links */}
                 <div>
-                  <FooterTitle>Products</FooterTitle>
+                  <FooterTitle>Support</FooterTitle>
                   <div className="space-y-3">
-                    {productLinks.map((link, index) => (
+                    {supportLinks.map((link, index) => (
                       <FooterLink key={link.href} href={link.href} delay={index}>
                         {link.text}
                       </FooterLink>
                     ))}
                   </div>
-                </div>
-              </div>
-              
-              {/* Support Links (Second Row) */}
-              <div className="mt-8">
-                <FooterTitle>Support</FooterTitle>
-                <div className="space-y-3">
-                  {supportLinks.map((link, index) => (
-                    <FooterLink key={link.href} href={link.href} delay={index}>
-                      {link.text}
-                    </FooterLink>
-                  ))}
                 </div>
               </div>
             </div>
