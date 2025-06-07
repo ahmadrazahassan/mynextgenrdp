@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/components/providers/AuthProvider';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Mail, Lock, Loader2, AlertTriangle, CheckCircle2, Eye, EyeOff, ShieldCheck, XCircle, AlertCircle, Info } from 'lucide-react';
+import { Loader2, AlertTriangle, CheckCircle2, Eye, EyeOff, Mail, Lock, LogIn, CheckCircle } from 'lucide-react';
 import { useToast } from "@/components/ui/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { motion, AnimatePresence } from "framer-motion";
@@ -149,14 +149,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                 variant="destructive" 
                 className="bg-gradient-to-r from-red-50/90 to-rose-50/90 backdrop-blur-sm border border-red-200/80 rounded-2xl shadow-sm overflow-hidden"
               >
-                <div className="flex items-start gap-2.5">
-                  <div className="p-1 bg-red-100/70 backdrop-blur-sm rounded-full flex-shrink-0 mt-0.5">
-                    <AlertTriangle className="h-4 w-4 text-red-600" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="text-red-700 font-medium text-sm">
-                      {formError}
-                    </div>
+                <div className="p-3">
+                  <div className="text-red-700 font-medium text-sm">
+                    {formError}
                   </div>
                 </div>
               </Alert>
@@ -172,10 +167,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
               transition={{ duration: 0.2 }}
             >
               <Alert className="bg-gradient-to-r from-emerald-50/90 to-teal-50/90 backdrop-blur-sm border border-emerald-200/80 rounded-2xl shadow-sm">
-                <div className="flex items-center gap-2.5">
-                  <div className="p-1 bg-emerald-100/70 backdrop-blur-sm rounded-full">
-                    <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-                  </div>
+                <div className="p-3">
                   <AlertDescription className="text-emerald-700 font-medium">
                     Login successful! Redirecting...
                   </AlertDescription>
@@ -186,18 +178,16 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
         </AnimatePresence>
 
         <div className="space-y-2">
-          <label htmlFor="email-login" className="block text-sm font-medium text-gray-700 flex items-center">
+          <label htmlFor="email-login" className="block text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center">
             Email Address
             {errorType === 'email' && (
-              <span className="ml-2 text-xs text-red-500 flex items-center">
-                <XCircle className="h-3 w-3 mr-1" />Invalid
+              <span className="ml-2 text-xs text-red-500">
+                Invalid
               </span>
             )}
           </label>
           <div className="relative group">
-            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-              <Mail className={`h-5 w-5 ${errorType === 'email' ? 'text-red-400' : isFocused === 'email' ? 'text-indigo-500' : 'text-gray-400'} transition-colors duration-200`} />
-            </div>
+  
             <Input
               id="email-login"
               name="email"
@@ -208,52 +198,44 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
               onChange={(e) => { setEmail(e.target.value); handleFieldChange('email'); }}
               onFocus={() => setIsFocused('email')}
               onBlur={() => setIsFocused(null)}
-              className={`pl-10 w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm focus:ring-2 rounded-2xl shadow-sm transition-all duration-200
+              className={`pl-10 w-full bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm focus:ring-2 rounded-xl shadow-sm transition-all duration-300
                 ${errorType === 'email' 
-                  ? 'border-red-300/80 focus:border-red-500 focus:ring-red-500 dark:border-red-700/80' 
-                  : 'border-gray-300/80 dark:border-gray-700/80 focus:border-indigo-500 focus:ring-indigo-500 group-hover:border-indigo-300 dark:group-hover:border-indigo-700'}`}
+                  ? 'border-red-300/80 focus:border-red-500 focus:ring-red-500/30 dark:border-red-700/80' 
+                  : 'border-gray-300/80 dark:border-gray-700/80 focus:border-indigo-500 focus:ring-indigo-500/30 group-hover:border-indigo-300 dark:group-hover:border-indigo-700'}`}
               placeholder="you@example.com"
               disabled={isLoading || isSuccess}
               aria-invalid={errorType === 'email'}
               aria-describedby={errorType === 'email' ? "email-error" : undefined}
             />
-            {errorType === 'email' && (
-              <motion.div 
-                initial={{ opacity: 0, scale: 0.5 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2"
-              >
-                <div className="p-0.5 bg-red-100 dark:bg-red-900/30 rounded-full">
-                  <XCircle className="h-4 w-4 text-red-500" />
-                </div>
-              </motion.div>
-            )}
             
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-[18px] opacity-0 group-hover:opacity-100 -z-10 transition-opacity duration-300 blur-sm"></div>
+            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+              <Mail className={`h-5 w-5 ${isFocused === 'email' ? 'text-indigo-500' : 'text-gray-400'} transition-colors duration-200`} />
+            </div>
+
+            
+            <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-xl opacity-0 group-hover:opacity-100 -z-10 transition-opacity duration-300 blur-sm"></div>
           </div>
         </div>
 
         <div className="space-y-2">
           <div className="flex justify-between items-center">
-            <label htmlFor="password-login" className="block text-sm font-medium text-gray-700 flex items-center">
+            <label htmlFor="password-login" className="block text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center">
               Password
               {errorType === 'password' && (
-                <span className="ml-2 text-xs text-red-500 flex items-center">
-                  <XCircle className="h-3 w-3 mr-1" />Incorrect
+                <span className="ml-2 text-xs text-red-500">
+                  Incorrect
                 </span>
               )}
             </label>
             <a 
               href="/forgot-password" 
-              className="text-xs font-medium text-indigo-600 hover:text-indigo-500 transition-colors hover:underline"
+              className="text-xs font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors hover:underline"
             >
               Forgot password?
             </a>
           </div>
           <div className="relative group">
-            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-              <Lock className={`h-5 w-5 ${errorType === 'password' ? 'text-red-400' : isFocused === 'password' ? 'text-indigo-500' : 'text-gray-400'} transition-colors duration-200`} />
-            </div>
+  
             <Input
               id="password-login"
               name="password"
@@ -264,15 +246,20 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
               onChange={(e) => { setPassword(e.target.value); handleFieldChange('password'); }}
               onFocus={() => setIsFocused('password')}
               onBlur={() => setIsFocused(null)}
-              className={`pl-10 pr-10 w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm focus:ring-2 rounded-2xl shadow-sm transition-all duration-200
+              className={`pl-10 pr-10 w-full bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm focus:ring-2 rounded-xl shadow-sm transition-all duration-300
                 ${errorType === 'password' 
-                  ? 'border-red-300/80 focus:border-red-500 focus:ring-red-500 dark:border-red-700/80' 
-                  : 'border-gray-300/80 dark:border-gray-700/80 focus:border-indigo-500 focus:ring-indigo-500 group-hover:border-indigo-300 dark:group-hover:border-indigo-700'}`}
+                  ? 'border-red-300/80 focus:border-red-500 focus:ring-red-500/30 dark:border-red-700/80' 
+                  : 'border-gray-300/80 dark:border-gray-700/80 focus:border-purple-500 focus:ring-purple-500/30 group-hover:border-purple-300 dark:group-hover:border-purple-700'}`}
               placeholder="••••••••"
               disabled={isLoading || isSuccess}
               aria-invalid={errorType === 'password'}
               aria-describedby={errorType === 'password' ? "password-error" : undefined}
             />
+            
+            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+              <Lock className={`h-5 w-5 ${isFocused === 'password' ? 'text-purple-500' : 'text-gray-400'} transition-colors duration-200`} />
+            </div>
+            
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
@@ -281,52 +268,27 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
             >
               {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
             </button>
-            {errorType === 'password' && (
-              <motion.div 
-                initial={{ opacity: 0, scale: 0.5 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="absolute right-10 top-1/2 transform -translate-y-1/2"
-              >
-                <div className="p-0.5 bg-red-100 dark:bg-red-900/30 rounded-full">
-                  <XCircle className="h-4 w-4 text-red-500" />
-                </div>
-              </motion.div>
-            )}
+
             
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-[18px] opacity-0 group-hover:opacity-100 -z-10 transition-opacity duration-300 blur-sm"></div>
+            <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-500/20 to-indigo-500/20 rounded-xl opacity-0 group-hover:opacity-100 -z-10 transition-opacity duration-300 blur-sm"></div>
           </div>
         </div>
 
-        <div className="flex items-center">
-          <div className="relative">
+        <div className="flex items-center space-x-2 mt-1">
+          <div className="relative h-5 w-5 cursor-pointer" onClick={() => setRememberMe(!rememberMe)}>
             <input
+              type="checkbox"
               id="remember-me"
               name="remember-me"
-              type="checkbox"
               checked={rememberMe}
-              onChange={(e) => setRememberMe(e.target.checked)}
-              className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300/80 rounded-md appearance-none checked:bg-indigo-600 transition-colors duration-200 relative z-10"
-              disabled={isLoading || isSuccess}
+              onChange={() => setRememberMe(!rememberMe)}
+              className="peer absolute h-5 w-5 cursor-pointer opacity-0"
             />
-            <motion.div
-              initial={false}
-              animate={rememberMe ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0 }}
-              className="absolute -top-1 -left-1 w-6 h-6 bg-indigo-100 dark:bg-indigo-900/30 rounded-full"
-              style={{ zIndex: -1 }}
-            />
-            <svg 
-              className={`absolute h-4 w-4 top-0 left-0 text-white pointer-events-none transition-opacity duration-200 ${rememberMe ? 'opacity-100' : 'opacity-0'}`} 
-              viewBox="0 0 24 24" 
-              fill="none" 
-              stroke="currentColor" 
-              strokeWidth="3" 
-              strokeLinecap="round" 
-              strokeLinejoin="round"
-            >
-              <polyline points="20 6 9 17 4 12"></polyline>
-            </svg>
+            <div className={`h-5 w-5 rounded-md border ${rememberMe ? 'bg-indigo-500 border-indigo-500 dark:bg-indigo-600 dark:border-indigo-600' : 'border-gray-300 dark:border-gray-700'} flex items-center justify-center transition-all duration-200`}>
+
+            </div>
           </div>
-          <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
+          <label htmlFor="remember-me" className="text-sm text-gray-600 dark:text-gray-400 cursor-pointer select-none">
             Remember me for 30 days
           </label>
         </div>
@@ -334,11 +296,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
         <div className="pt-2">
           <Button 
             type="submit" 
-            className={`w-full flex justify-center items-center rounded-2xl py-2.5 text-base font-medium shadow-sm transition-all duration-300 ${
-              isSuccess 
-                ? "bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white"
-                : "bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white relative overflow-hidden"
-            }`}
+            className="w-full flex justify-center items-center py-2.5 px-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 rounded-xl text-white text-base font-medium shadow-sm transition-all duration-300 relative overflow-hidden group"
             disabled={isLoading || isSuccess}
           >
             {isLoading ? (
@@ -355,35 +313,19 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                 animate={{ scale: 1 }}
                 className="mr-2"
               >
-                <CheckCircle2 className="h-5 w-5" />
+                <CheckCircle className="h-5 w-5" />
               </motion.div>
-            ) : null}
+            ) : (
+              <LogIn className="mr-2 h-5 w-5" />
+            )}
             
             <span className="relative z-10">
-              {isLoading ? 'Logging in...' : isSuccess ? 'Logged In!' : 'Log In'}
+              {isLoading ? 'Signing in...' : isSuccess ? 'Signed in!' : 'Sign In'}
             </span>
-            
-            {!isLoading && !isSuccess && (
-              <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 to-violet-500 opacity-0 hover:opacity-30 transition-opacity duration-300 rounded-2xl"></div>
-            )}
           </Button>
         </div>
         
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2 }}
-          className="flex justify-center items-center mt-4 gap-2.5"
-        >
-          <div className="flex items-center gap-2 text-xs text-gray-500 bg-gray-50/80 dark:bg-gray-800/50 px-3 py-1.5 rounded-full backdrop-blur-sm shadow-sm">
-            <ShieldCheck className="h-3.5 w-3.5 text-indigo-500" />
-            <span>Secure, encrypted login</span>
-          </div>
-          <div className="flex items-center gap-2 text-xs text-gray-500 bg-gray-50/80 dark:bg-gray-800/50 px-3 py-1.5 rounded-full backdrop-blur-sm shadow-sm">
-            <Info className="h-3.5 w-3.5 text-indigo-500" />
-            <span>24/7 Support</span>
-          </div>
-        </motion.div>
+
       </form>
     </motion.div>
   );
