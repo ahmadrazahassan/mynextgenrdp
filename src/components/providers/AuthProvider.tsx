@@ -6,19 +6,31 @@ import { useRouter } from 'next/navigation';
 interface User {
   id: string;
   email: string;
+  name: string;
   fullName?: string;
-  isAdmin?: boolean;
-  // Add other user fields as needed from your User model
+  role: string;
+}
+
+interface LoginParams {
+  email: string;
+  password: string;
+  rememberMe?: boolean;
+}
+
+interface RegisterParams {
+  fullName: string;
+  email: string;
+  password: string;
 }
 
 interface AuthContextType {
   user: User | null;
-  isLoading: boolean;
   isAuthenticated: boolean;
+  isLoading: boolean;
   error: string | null;
-  login: (credentials: any) => Promise<void>; // Define specific credentials type later
-  register: (userData: any) => Promise<void>; // Define specific userData type later
-  logout: () => Promise<void>;
+  login: (params: LoginParams) => Promise<any>;
+  register: (params: RegisterParams) => Promise<any>;
+  logout: () => void;
   clearError: () => void;
 }
 
@@ -70,51 +82,104 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
-  const login = async (credentials: any) => {
-    setIsLoading(true);
-    setError(null);
+  const login = async ({ email, password, rememberMe = false }: LoginParams) => {
     try {
+      setError(null);
+      setIsLoading(true);
+      
+      // Call your API to authenticate
       const response = await fetch('/api/auth/login', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(credentials),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password, rememberMe }),
       });
+      
       const data = await response.json();
+      
       if (!response.ok) {
-        throw new Error(data.message || 'Login failed');
+        const errorMessage = data.error || 'Authentication failed';
+        
+        // Provide specific error messages for different scenarios
+        if (errorMessage.toLowerCase().includes('not found')) {
+          throw new Error(`Email address not found. Please check your email or register a new account.`);
+        }
+        
+        if (errorMessage.toLowerCase().includes('password') && errorMessage.toLowerCase().includes('invalid')) {
+          throw new Error(`Invalid password. Please check your password and try again.`);
+        }
+        
+        throw new Error(errorMessage);
       }
-      setUser(data.user || data); // Adjust based on your API response structure
-      // Optionally redirect or perform other actions
+      
+      // Set user state
+      setUser({
+        id: data.user.id,
+        email: data.user.email,
+        name: data.user.name,
+        role: data.user.role,
+      });
+      
+      // Set token in local storage/cookie
+      if (rememberMe) {
+        localStorage.setItem('authToken', data.token);
+      } else {
+        sessionStorage.setItem('authToken', data.token);
+      }
+      
+      return data;
     } catch (err: any) {
-      setError(err.message || 'An error occurred during login.');
-      setUser(null);
-      throw err; // Re-throw to be caught by the form
+      setError(err.message || 'An error occurred during login');
+      throw err;
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
-  const register = async (userData: any) => {
-    setIsLoading(true);
-    setError(null);
+  const register = async ({ fullName, email, password }: RegisterParams) => {
     try {
+      setError(null);
+      setIsLoading(true);
+      
+      // Call your API to register user
       const response = await fetch('/api/auth/register', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(userData),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ fullName, email, password }),
       });
+      
       const data = await response.json();
+      
       if (!response.ok) {
-        throw new Error(data.message || 'Registration failed');
+        const errorMessage = data.error || 'Registration failed';
+        
+        // Provide specific error messages for different scenarios
+        if (errorMessage.toLowerCase().includes('email') && 
+            (errorMessage.toLowerCase().includes('exists') || 
+             errorMessage.toLowerCase().includes('taken') || 
+             errorMessage.toLowerCase().includes('already in use'))) {
+          throw new Error(`This email is already registered. Please try logging in instead.`);
+        }
+        
+        if (errorMessage.toLowerCase().includes('password') && 
+            (errorMessage.toLowerCase().includes('weak') || 
+             errorMessage.toLowerCase().includes('requirements'))) {
+          throw new Error(`Password does not meet security requirements. Please use a stronger password.`);
+        }
+        
+        throw new Error(errorMessage);
       }
-      // setUser(data.user || data); // Optionally auto-login or fetch user after registration
-      // Typically, after registration, you might want to redirect to login or auto-fetch user
-      await fetchCurrentUser(); // Re-fetch user to confirm session, or handle as per your flow
+
+      return data;
     } catch (err: any) {
-      setError(err.message || 'An error occurred during registration.');
-      setUser(null);
-      throw err; // Re-throw to be caught by the form
+      setError(err.message || 'An error occurred during registration');
+      throw err;
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   const logout = async () => {

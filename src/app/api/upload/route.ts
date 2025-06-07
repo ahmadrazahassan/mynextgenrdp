@@ -72,6 +72,7 @@ export async function POST(request: NextRequest) {
     const userId = formData.get('userId') as string | null;
     const orderId = formData.get('orderId') as string | null;
     const isOrderScreenshot = formData.get('isOrderScreenshot') as string | null;
+    const useAzureStorage = formData.get('useAzureStorage') as string | null;
 
     if (!file) {
       return NextResponse.json({ error: "No file provided." }, { status: 400 });
@@ -93,8 +94,11 @@ export async function POST(request: NextRequest) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // If this is an order screenshot or Azure connection is not configured, use local storage
-    if (isOrderScreenshot === 'true' || !connectionString) {
+    // Check if Azure should be used:
+    // 1. If useAzureStorage=true is explicitly set, use Azure
+    // 2. Only use local storage if isOrderScreenshot=true AND useAzureStorage is not true
+    // 3. Fallback to local if Azure connection is not configured
+    if ((isOrderScreenshot === 'true' && useAzureStorage !== 'true') || !connectionString) {
       try {
         if (isOrderScreenshot === 'true' && !orderId) {
           return NextResponse.json({ error: "Order ID is required for order screenshots." }, { status: 400 });
@@ -161,6 +165,8 @@ export async function POST(request: NextRequest) {
     } else {
       // For non-order uploads when Azure is configured, use Azure as before
       try {
+        console.log('Uploading file to Azure Blob Storage');
+        
         // Initialize Azure Blob client
         const blobServiceClient = BlobServiceClient.fromConnectionString(connectionString);
         const containerClient = blobServiceClient.getContainerClient(containerName);

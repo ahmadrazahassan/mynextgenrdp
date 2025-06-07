@@ -384,45 +384,139 @@ export default function OrderPage() {
 
                          {/* --- Step 2: Account --- */}
                          {currentStep === 'account' && (
-                            <Card className="shadow-lg border-gray-200">
-                             <CardHeader>
-                               <CardTitle className="text-2xl flex items-center gap-2"><UserCheck size={24} className="text-indigo-500"/> Account Details</CardTitle>
-                               <CardDescription>Log in or create an account to associate this order.</CardDescription>
+                            <Card className="shadow-xl border-gray-200 overflow-hidden rounded-2xl bg-white/95 backdrop-blur-md">
+                             <CardHeader className="bg-gradient-to-r from-indigo-50 to-violet-50 dark:from-indigo-950/30 dark:to-violet-950/30 border-b border-gray-100 dark:border-gray-800 px-6 py-5">
+                               <CardTitle className="text-2xl flex items-center gap-3">
+                                 <div className="p-2 bg-gradient-to-br from-indigo-500 to-violet-500 rounded-xl text-white shadow-md">
+                                   <UserCheck size={20} className="text-white" />
+                                 </div>
+                                 <span className="bg-gradient-to-r from-indigo-700 to-violet-700 dark:from-indigo-400 dark:to-violet-400 bg-clip-text text-transparent">
+                                   Account Details
+                                 </span>
+                               </CardTitle>
+                               <CardDescription className="text-gray-600 dark:text-gray-400 mt-1.5 ml-1">Log in or create an account to associate this order.</CardDescription>
                              </CardHeader>
-                             <CardContent>
+                             <CardContent className="p-8 bg-gradient-to-br from-white to-indigo-50/30 dark:from-gray-950 dark:to-indigo-950/10">
                                 {isAuthLoading ? (
-                                  <div className="flex justify-center items-center py-8">
-                                    <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
-                                    <span className="ml-2 text-gray-600">Verifying authentication...</span>
+                                  <div className="flex flex-col justify-center items-center py-16">
+                                    <div className="relative">
+                                      <div className="absolute inset-0 rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 blur-lg opacity-30 animate-pulse"></div>
+                                      <div className="relative h-20 w-20 rounded-full bg-gradient-to-r from-indigo-500/20 to-violet-500/20 flex items-center justify-center">
+                                        <Loader2 className="h-10 w-10 animate-spin text-indigo-600" />
+                                      </div>
+                                    </div>
+                                    <span className="mt-6 text-gray-600 font-medium text-lg">Verifying authentication...</span>
+                                    <p className="text-gray-500 text-sm mt-2">Please wait while we check your account status</p>
                                   </div>
                                 ) : isAuthenticated ? (
-                                  // If user is authenticated, show their info
-                                  <UserDisplay />
-                                ) : (
-                                  // If user is NOT authenticated, show login/register options
-                                  <div className="space-y-4">
-                                    <div className="flex border-b border-gray-200">
-                                      {/* Login/Register Tabs/Buttons */}
-                                      <button 
-                                        onClick={() => setAuthFormMode('login')} 
-                                        className={`py-3 px-5 font-semibold transition-all 
-                                          ${authFormMode === 'login' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-500 hover:text-gray-800 hover:border-b-2 hover:border-gray-300'}`}
-                                      >
-                                        Log In
-                                      </button>
-                                      <button 
-                                        onClick={() => setAuthFormMode('register')} 
-                                        className={`py-3 px-5 font-semibold transition-all 
-                                          ${authFormMode === 'register' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-500 hover:text-gray-800 hover:border-b-2 hover:border-gray-300'}`}
-                                      >
-                                        Create Account
-                                      </button>
+                                  // If user is authenticated, show their info with enhanced styling
+                                  <div className="p-8 bg-gradient-to-r from-indigo-50 to-violet-50 dark:from-indigo-950/30 dark:to-violet-950/30 rounded-2xl border border-indigo-100 dark:border-indigo-900/30 shadow-sm">
+                                    <UserDisplay />
+                                    <div className="mt-6 flex justify-center">
+                                      <div className="p-3 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 rounded-xl border border-emerald-100 dark:border-emerald-900/30 flex items-center shadow-sm">
+                                        <CheckCircle2 className="h-5 w-5 text-emerald-500 mr-2" />
+                                        <span className="text-sm text-emerald-700 dark:text-emerald-400 font-medium">You're signed in and ready to proceed</span>
+                                      </div>
                                     </div>
-                                    <div className="pt-4">
-                                      {authFormMode === 'login' ? 
+                                  </div>
+                                ) : (
+                                  // If user is NOT authenticated, show enhanced login/register options
+                                  <div className="space-y-8">
+                                    {/* Modern tab design */}
+                                    <div className="flex justify-center mb-8">
+                                      <div className="bg-gradient-to-r from-indigo-50/80 to-violet-50/80 dark:from-gray-800/40 dark:to-gray-900/40 backdrop-blur-sm p-2 rounded-3xl flex w-full max-w-xs shadow-lg border border-indigo-100/50 dark:border-indigo-900/30">
+                                        <button 
+                                          onClick={() => setAuthFormMode('login')} 
+                                          className={`relative py-3.5 px-6 text-sm font-medium rounded-2xl flex-1 transition-all duration-300 ${
+                                            authFormMode === 'login' 
+                                              ? 'bg-white/90 dark:bg-gray-800/90 text-indigo-600 dark:text-indigo-400 shadow-lg backdrop-blur-sm border border-indigo-100/50 dark:border-indigo-900/30 z-10' 
+                                              : 'text-gray-600 dark:text-gray-400 hover:text-indigo-500 dark:hover:text-indigo-300'
+                                          }`}
+                                        >
+                                          {authFormMode === 'login' && (
+                                            <div className="absolute inset-0 bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-2xl -z-10 overflow-hidden">
+                                              <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500/10 to-purple-500/10 blur-xl"></div>
+                                            </div>
+                                          )}
+                                          <span className="relative">Log In</span>
+                                        </button>
+                                        <button 
+                                          onClick={() => setAuthFormMode('register')} 
+                                          className={`relative py-3.5 px-6 text-sm font-medium rounded-2xl flex-1 transition-all duration-300 ${
+                                            authFormMode === 'register' 
+                                              ? 'bg-white/90 dark:bg-gray-800/90 text-indigo-600 dark:text-indigo-400 shadow-lg backdrop-blur-sm border border-indigo-100/50 dark:border-indigo-900/30 z-10' 
+                                              : 'text-gray-600 dark:text-gray-400 hover:text-indigo-500 dark:hover:text-indigo-300'
+                                          }`}
+                                        >
+                                          {authFormMode === 'register' && (
+                                            <div className="absolute inset-0 bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-2xl -z-10 overflow-hidden">
+                                              <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500/10 to-purple-500/10 blur-xl"></div>
+                                            </div>
+                                          )}
+                                          <span className="relative">Create Account</span>
+                                        </button>
+                                      </div>
+                                    </div>
+                                    
+                                    {/* Form container with enhanced styling */}
+                                    <div className="relative bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm rounded-3xl p-10 shadow-xl border border-indigo-100/50 dark:border-indigo-900/30 overflow-hidden group">
+                                      {/* Decorative elements */}
+                                      <div className="absolute -top-10 -right-10 w-40 h-40 bg-gradient-to-br from-indigo-500/20 to-violet-500/20 rounded-full blur-xl group-hover:opacity-70 transition-opacity duration-500"></div>
+                                      <div className="absolute -bottom-10 -left-10 w-48 h-48 bg-gradient-to-tr from-violet-500/20 to-indigo-500/20 rounded-full blur-xl group-hover:opacity-70 transition-opacity duration-500"></div>
+                                      <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-white/5 via-indigo-50/5 to-white/5 dark:from-gray-900/5 dark:via-indigo-950/5 dark:to-gray-900/5 mix-blend-overlay pointer-events-none"></div>
+                                      
+                                      {/* Animated border effect */}
+                                      <div className="absolute inset-0 rounded-3xl overflow-hidden pointer-events-none">
+                                        <div className="absolute inset-x-0 top-0 h-px w-full bg-gradient-to-r from-transparent via-indigo-500/30 to-transparent"></div>
+                                        <div className="absolute inset-x-0 bottom-0 h-px w-full bg-gradient-to-r from-transparent via-purple-500/30 to-transparent"></div>
+                                        <div className="absolute inset-y-0 left-0 w-px h-full bg-gradient-to-b from-transparent via-indigo-500/30 to-transparent"></div>
+                                        <div className="absolute inset-y-0 right-0 w-px h-full bg-gradient-to-b from-transparent via-purple-500/30 to-transparent"></div>
+                                      </div>
+                                      
+                                      {/* Login/Register title */}
+                                      <div className="relative z-10 mb-6 text-center">
+                                        <h3 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-violet-600 dark:from-indigo-400 dark:to-violet-400">
+                                          {authFormMode === 'login' ? 'Welcome Back' : 'Create Your Account'}
+                                        </h3>
+                                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                          {authFormMode === 'login' 
+                                            ? 'Sign in to access your account and services' 
+                                            : 'Join us to get started with our services'}
+                                        </p>
+                                      </div>
+
+                                      {/* Auth forms with animation */}
+                                      <div className="relative z-10">
+                                        {authFormMode === 'login' ? 
                                           <LoginForm onLoginSuccess={handleAuthSuccess} /> : 
                                           <RegisterForm onRegisterSuccess={handleAuthSuccess} />
-                                      }
+                                        }
+                                      </div>
+                                    </div>
+                                    
+                                    {/* Trust indicators */}
+                                    <div className="flex flex-col items-center pt-4">
+                                      <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-xs mb-4">
+                                        <div className="p-1.5 bg-indigo-50/80 dark:bg-indigo-900/30 backdrop-blur-sm rounded-full shadow-sm">
+                                          <ShieldCheck size={16} className="text-indigo-500" />
+                                        </div>
+                                        <span className="font-medium">Secure, encrypted connection</span>
+                                      </div>
+                                      
+                                      <div className="flex flex-wrap justify-center gap-6 mt-2">
+                                        <div className="flex items-center gap-2 text-xs text-gray-500 bg-gray-50/80 dark:bg-gray-800/50 px-3 py-1.5 rounded-full backdrop-blur-sm shadow-sm">
+                                          <CheckCircle2 size={14} className="text-indigo-500" />
+                                          <span>GDPR Compliant</span>
+                                        </div>
+                                        <div className="flex items-center gap-2 text-xs text-gray-500 bg-gray-50/80 dark:bg-gray-800/50 px-3 py-1.5 rounded-full backdrop-blur-sm shadow-sm">
+                                          <CheckCircle2 size={14} className="text-indigo-500" />
+                                          <span>No Credit Card Required</span>
+                                        </div>
+                                        <div className="flex items-center gap-2 text-xs text-gray-500 bg-gray-50/80 dark:bg-gray-800/50 px-3 py-1.5 rounded-full backdrop-blur-sm shadow-sm">
+                                          <CheckCircle2 size={14} className="text-indigo-500" />
+                                          <span>Instant Account Access</span>
+                                        </div>
+                                      </div>
                                     </div>
                                   </div>
                                 )}
@@ -458,6 +552,7 @@ export default function OrderPage() {
                                       <PaymentProofUpload 
                                         onUploadSuccess={handleProofUploadSuccess} 
                                         onUploadError={handleProofUploadError}
+                                        userId={user?.id}
                                       />
                                       {paymentStepError && (
                                         <div className="mt-4 p-3 bg-red-50 border border-red-300 rounded-md flex items-start space-x-2 text-red-700">
