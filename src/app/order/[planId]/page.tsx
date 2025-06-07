@@ -2,7 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { AlertCircle, CheckCircle2, Loader2, ArrowLeft, ArrowRight, Info, UserCheck, UserPlus, CreditCard, ShieldCheck, CheckCircle } from 'lucide-react'; // Example icons
+import { 
+  AlertCircle, CheckCircle2, Loader2, ArrowLeft, ArrowRight, 
+  Info, UserCheck, UserPlus, CreditCard, ShieldCheck,
+  MapPin, Globe, Cpu, MemoryStick, HardDrive, Wifi, Server, Gauge, 
+  Gift, BadgePercent, Receipt, FileCheck, CreditCard as CardIcon, 
+  Wallet, Building2, QrCode, Shield, Lock, Landmark
+} from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -334,6 +340,101 @@ export default function OrderPage() {
       }
   };
 
+  // Add this new section in the configure step to display plan details with icons
+  const renderPlanFeatures = () => {
+    if (!plan) return null;
+    
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+        <div className="flex items-center space-x-3 p-3 bg-indigo-50/50 rounded-lg border border-indigo-100">
+          <div className="flex-shrink-0 p-2 bg-indigo-100 rounded-lg">
+            <Cpu className="h-5 w-5 text-indigo-600" />
+          </div>
+          <div>
+            <div className="text-sm font-medium text-gray-700">CPU</div>
+            <div className="text-base font-semibold">{plan.cpu}</div>
+          </div>
+        </div>
+        
+        <div className="flex items-center space-x-3 p-3 bg-blue-50/50 rounded-lg border border-blue-100">
+          <div className="flex-shrink-0 p-2 bg-blue-100 rounded-lg">
+            <MemoryStick className="h-5 w-5 text-blue-600" />
+          </div>
+          <div>
+            <div className="text-sm font-medium text-gray-700">RAM</div>
+            <div className="text-base font-semibold">{plan.ram}</div>
+          </div>
+        </div>
+        
+        <div className="flex items-center space-x-3 p-3 bg-purple-50/50 rounded-lg border border-purple-100">
+          <div className="flex-shrink-0 p-2 bg-purple-100 rounded-lg">
+            <HardDrive className="h-5 w-5 text-purple-600" />
+          </div>
+          <div>
+            <div className="text-sm font-medium text-gray-700">Storage</div>
+            <div className="text-base font-semibold">{plan.storage}</div>
+          </div>
+        </div>
+        
+        <div className="flex items-center space-x-3 p-3 bg-emerald-50/50 rounded-lg border border-emerald-100">
+          <div className="flex-shrink-0 p-2 bg-emerald-100 rounded-lg">
+            <Wifi className="h-5 w-5 text-emerald-600" />
+          </div>
+          <div>
+            <div className="text-sm font-medium text-gray-700">Bandwidth</div>
+            <div className="text-base font-semibold">{plan.bandwidth}</div>
+          </div>
+        </div>
+        
+        <div className="flex items-center space-x-3 p-3 bg-amber-50/50 rounded-lg border border-amber-100">
+          <div className="flex-shrink-0 p-2 bg-amber-100 rounded-lg">
+            <Server className="h-5 w-5 text-amber-600" />
+          </div>
+          <div>
+            <div className="text-sm font-medium text-gray-700">OS</div>
+            <div className="text-base font-semibold">{plan.os}</div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Replace the location selector section with this enhanced version
+  const renderLocationSelector = () => {
+    return (
+      <div className="mt-6">
+        <div className="flex items-center mb-3">
+          <MapPin className="h-5 w-5 text-indigo-600 mr-2" />
+          <h3 className="text-lg font-semibold text-gray-800">Server Location</h3>
+        </div>
+        <LocationSelector 
+          selectedLocation={selectedLocation}
+          onLocationChange={handleLocationChange}
+        />
+      </div>
+    );
+  };
+
+  // Update the promo code section
+  const renderPromoCodeSection = () => {
+    return (
+      <div className="mt-6">
+        <div className="flex items-center mb-3">
+          <BadgePercent className="h-5 w-5 text-indigo-600 mr-2" />
+          <h3 className="text-lg font-semibold text-gray-800">Promotional Code</h3>
+        </div>
+        <PromoCodeInput
+          promoCode={promoCode}
+          onPromoCodeChange={handlePromoCodeChange}
+          onApplyPromoCode={handleApplyPromoCode}
+          isApplying={isApplyingPromo}
+          message={promoCodeMessage}
+          discount={promoDiscount}
+        />
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-sky-50 via-indigo-50 to-purple-50 text-gray-900 p-4 md:p-8 lg:p-12 selection:bg-indigo-100">
       <div className="max-w-7xl mx-auto">
@@ -341,7 +442,7 @@ export default function OrderPage() {
          {/* Conditionally render Redirecting message or Order Steps */}
          {isRedirecting ? (
              <div className="flex flex-col items-center justify-center text-center py-20 md:py-32">
-                 <CheckCircle size={64} className="text-green-500 mb-6 animate-pulse" />
+                 <CheckCircle2 size={64} className="text-green-500 mb-6 animate-pulse" />
                  <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-3">Order Placed Successfully!</h1>
                  <p className="text-lg text-gray-600 mb-8">Your order is being processed. Please wait while we redirect you to your dashboard...</p>
                  <Loader2 className="h-12 w-12 animate-spin text-indigo-600" />
@@ -364,21 +465,29 @@ export default function OrderPage() {
                     <main className="lg:col-span-7 xl:col-span-8 space-y-8">
                          {/* --- Step 1: Configuration --- */}
                          {currentStep === 'configure' && (
-                           <Card className="shadow-lg border-gray-200">
-                             <CardHeader>
-                               <CardTitle className="text-2xl flex items-center gap-2"><Info size={24} className="text-indigo-500"/> Configuration</CardTitle>
-                               <CardDescription>Select your server location and apply any promo codes.</CardDescription>
+                           <Card>
+                             <CardHeader className="pb-4">
+                               <div className="flex items-center space-x-2">
+                                 <Server className="h-6 w-6 text-indigo-600" />
+                                 <CardTitle>Configure Your {plan.name}</CardTitle>
+                               </div>
+                               <CardDescription>Select your preferred server location and apply any promotional codes</CardDescription>
                              </CardHeader>
-                             <CardContent className="space-y-6">
-                                <LocationSelector selectedLocation={selectedLocation} onLocationChange={handleLocationChange} />
-                                <PromoCodeInput 
-                                    promoCode={promoCode} 
-                                    onPromoCodeChange={handlePromoCodeChange} 
-                                    onApplyPromoCode={handleApplyPromoCode}
-                                    isLoading={isApplyingPromo}
-                                    appliedMessage={promoCodeMessage}
-                                />
+                             <CardContent>
+                               {renderPlanFeatures()}
+                               {renderLocationSelector()}
+                               {renderPromoCodeSection()}
                              </CardContent>
+                             <CardFooter className="flex justify-between border-t pt-6">
+                               <Button variant="outline" onClick={() => router.push('/pricing')}>
+                                 <ArrowLeft className="mr-2 h-4 w-4" />
+                                 Back to Plans
+                               </Button>
+                               <Button onClick={goToNextStep} className="bg-gradient-to-r from-indigo-600 to-violet-600">
+                                 Continue
+                                 <ArrowRight className="ml-2 h-4 w-4" />
+                               </Button>
+                             </CardFooter>
                            </Card>
                          )}
 
@@ -494,30 +603,7 @@ export default function OrderPage() {
                                       </div>
                                     </div>
                                     
-                                    {/* Trust indicators */}
-                                    <div className="flex flex-col items-center pt-4">
-                                      <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-xs mb-4">
-                                        <div className="p-1.5 bg-indigo-50/80 dark:bg-indigo-900/30 backdrop-blur-sm rounded-full shadow-sm">
-                                          <ShieldCheck size={16} className="text-indigo-500" />
-                                        </div>
-                                        <span className="font-medium">Secure, encrypted connection</span>
-                                      </div>
-                                      
-                                      <div className="flex flex-wrap justify-center gap-6 mt-2">
-                                        <div className="flex items-center gap-2 text-xs text-gray-500 bg-gray-50/80 dark:bg-gray-800/50 px-3 py-1.5 rounded-full backdrop-blur-sm shadow-sm">
-                                          <CheckCircle2 size={14} className="text-indigo-500" />
-                                          <span>GDPR Compliant</span>
-                                        </div>
-                                        <div className="flex items-center gap-2 text-xs text-gray-500 bg-gray-50/80 dark:bg-gray-800/50 px-3 py-1.5 rounded-full backdrop-blur-sm shadow-sm">
-                                          <CheckCircle2 size={14} className="text-indigo-500" />
-                                          <span>No Credit Card Required</span>
-                                        </div>
-                                        <div className="flex items-center gap-2 text-xs text-gray-500 bg-gray-50/80 dark:bg-gray-800/50 px-3 py-1.5 rounded-full backdrop-blur-sm shadow-sm">
-                                          <CheckCircle2 size={14} className="text-indigo-500" />
-                                          <span>Instant Account Access</span>
-                                        </div>
-                                      </div>
-                                    </div>
+
                                   </div>
                                 )}
                              </CardContent>

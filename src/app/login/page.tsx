@@ -737,11 +737,7 @@ function LoginPageContent() {
               </div>
             </div>
             
-            {/* Footer with security info */}
-            <div className="py-4 px-8 md:px-12 bg-gradient-to-b from-gray-50/90 to-gray-100/90 border-t border-gray-200/50 flex items-center justify-center rounded-b-[2.5rem]">
-              <LuShieldCheck className="w-4 h-4 mr-1.5 text-green-500" />
-              <span className="text-xs text-gray-500">Secure, encrypted connection</span>
-            </div>
+
           </div>
         </motion.div>
       </div>

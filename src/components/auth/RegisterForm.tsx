@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/components/providers/AuthProvider';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { User as UserIcon, Mail, Lock, Loader2, AlertTriangle, CheckCircle2, Eye, EyeOff, ShieldCheck, Info, XCircle, Check, ArrowRight, AlertCircle } from 'lucide-react';
+import { Loader2, AlertTriangle, CheckCircle2, Eye, EyeOff, Check, XCircle, AlertCircle, User, Mail, KeyRound, Lock, Shield, UserCircle2, Sparkles } from 'lucide-react';
 import { useToast } from "@/components/ui/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { motion, AnimatePresence } from "framer-motion";
@@ -422,9 +422,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess }) => {
                   )}
                 </label>
                 <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                    <UserIcon className={`h-5 w-5 ${hasFieldError('fullName') ? 'text-red-400' : isFocused === 'fullName' ? 'text-indigo-500' : 'text-gray-400'} transition-colors duration-200`} />
-                  </div>
+                  
                   <Input
                     id="fullName"
                     name="fullName"
@@ -443,17 +441,9 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess }) => {
                     disabled={isLoading || isSuccess}
                   />
                   
-                  {hasFieldError('fullName') && (
-                    <motion.div 
-                      initial={{ opacity: 0, scale: 0.5 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2"
-                    >
-                      <div className="p-0.5 bg-red-100 dark:bg-red-900/30 rounded-full">
-                        <XCircle className="h-4 w-4 text-red-500" />
-                      </div>
-                    </motion.div>
-                  )}
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <UserCircle2 className={`h-5 w-5 ${isFocused === 'fullName' ? 'text-indigo-500' : 'text-gray-400'} transition-colors duration-200`} />
+                  </div>
                   
                   <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-[18px] opacity-0 group-hover:opacity-100 -z-10 transition-opacity duration-300 blur-sm"></div>
                 </div>
@@ -464,9 +454,8 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess }) => {
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
                   >
-                    <p id="fullName-error" className="mt-1.5 text-xs text-red-500 flex items-start pl-2 pr-3 py-1.5 bg-red-50/50 dark:bg-red-900/10 rounded-xl">
-                      <AlertCircle className="h-3.5 w-3.5 mr-1.5 mt-0.5 flex-shrink-0" />
-                      <span>{getFieldError('fullName')}</span>
+                    <p id="fullName-error" className="mt-1.5 text-xs text-red-500 pl-2 pr-3 py-1.5 bg-red-50/50 dark:bg-red-900/10 rounded-xl">
+                      {getFieldError('fullName')}
                     </p>
                   </motion.div>
                 )}
@@ -476,16 +465,13 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess }) => {
                 <label htmlFor="email-register" className="block text-sm font-medium text-gray-700 flex items-center">
                   Email Address
                   {hasFieldError('email') && (
-                    <span className="ml-2 text-xs text-red-500 flex items-center">
-                      <XCircle className="h-3 w-3 mr-1" />
-                      {getFieldError('email')}
-                    </span>
+                                          <span className="ml-2 text-xs text-red-500">
+                        {getFieldError('email')}
+                      </span>
                   )}
                 </label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                    <Mail className={`h-5 w-5 ${hasFieldError('email') ? 'text-red-400' : 'text-gray-400'}`} />
-                  </div>
+                  
                   <Input
                     id="email-register"
                     name="email"
@@ -503,17 +489,21 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess }) => {
                     aria-invalid={errorType === 'email'}
                     aria-describedby={errorType === 'email' ? "email-error" : undefined}
                   />
+                  
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <Mail className={`h-5 w-5 ${isFocused === 'email' ? 'text-indigo-500' : 'text-gray-400'} transition-colors duration-200`} />
+                  </div>
+                  
                   {errorType === 'email' && (
                     <motion.div 
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: 'auto' }}
                       exit={{ opacity: 0, height: 0 }}
                     >
-                      <p id="email-error" className="mt-1.5 text-xs text-red-500 flex items-start pl-2 pr-3 py-1.5 bg-red-50/50 dark:bg-red-900/10 rounded-xl">
-                        <AlertCircle className="h-3.5 w-3.5 mr-1.5 mt-0.5 flex-shrink-0" />
+                      <p id="email-error" className="mt-1.5 text-xs text-red-500 pl-2 pr-3 py-1.5 bg-red-50/50 dark:bg-red-900/10 rounded-xl">
                         {email.includes('@') ? 
-                          <span>This email is already registered. Try logging in instead.</span> : 
-                          <span>Please enter a valid email address.</span>
+                          "This email is already registered. Try logging in instead." : 
+                          "Please enter a valid email address."
                         }
                       </p>
                     </motion.div>
@@ -521,6 +511,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess }) => {
                   
                   <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-[18px] opacity-0 group-hover:opacity-100 -z-10 transition-opacity duration-300 blur-sm"></div>
                 </div>
+
               </div>
               
               <div className="pt-4">
@@ -530,7 +521,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess }) => {
                   className="w-full flex justify-center items-center rounded-2xl py-2.5 text-base font-medium shadow-sm transition-all duration-300 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white"
                   disabled={isLoading || isSuccess}
                 >
-                  Continue <ArrowRight className="ml-2 h-5 w-5" />
+                  Continue
                 </Button>
               </div>
             </motion.div>
@@ -550,16 +541,14 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess }) => {
                   <label htmlFor="password-register" className="block text-sm font-medium text-gray-700 flex items-center">
                     Password
                     {errorType === 'password' && (
-                      <span className="ml-2 text-xs text-red-500 flex items-center">
-                        <XCircle className="h-3 w-3 mr-1" />Too Weak
+                      <span className="ml-2 text-xs text-red-500">
+                        Too Weak
                       </span>
                     )}
                   </label>
                 </div>
                 <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                    <Lock className={`h-5 w-5 ${errorType === 'password' ? 'text-red-400' : isFocused === 'password' ? 'text-indigo-500' : 'text-gray-400'} transition-colors duration-200`} />
-                  </div>
+                  
                   <Input
                     id="password-register"
                     name="password"
@@ -582,6 +571,9 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess }) => {
                     aria-invalid={errorType === 'password'}
                     aria-describedby={errorType === 'password' ? "password-error" : undefined}
                   />
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <Lock className={`h-5 w-5 ${isFocused === 'password' ? 'text-indigo-500' : 'text-gray-400'} transition-colors duration-200`} />
+                  </div>
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
@@ -591,17 +583,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess }) => {
                     {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   </button>
                   
-                  {errorType === 'password' && (
-                    <motion.div 
-                      initial={{ opacity: 0, scale: 0.5 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      className="absolute right-10 top-1/2 transform -translate-y-1/2"
-                    >
-                      <div className="p-0.5 bg-red-100 dark:bg-red-900/30 rounded-full">
-                        <XCircle className="h-4 w-4 text-red-500" />
-                      </div>
-                    </motion.div>
-                  )}
+
                   
                   <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-[18px] opacity-0 group-hover:opacity-100 -z-10 transition-opacity duration-300 blur-sm"></div>
                 </div>
@@ -623,7 +605,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess }) => {
                   <div className="mt-3 space-y-1">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-1.5">
-                        <ShieldCheck className={`h-3.5 w-3.5 ${
+                        <Sparkles className={`h-3.5 w-3.5 ${
                           passwordStrength === 0 ? 'text-gray-400' :
                           passwordStrength === 1 ? 'text-red-500' :
                           passwordStrength === 2 ? 'text-orange-500' :
@@ -636,8 +618,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess }) => {
                       </div>
                       
                       {password && passwordStrength < 3 && (
-                        <span className="text-xs text-gray-500 flex items-center">
-                          <Info className="h-3 w-3 mr-1 text-amber-500" />
+                        <span className="text-xs text-gray-500">
                           Make it stronger
                         </span>
                       )}
@@ -667,7 +648,6 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess }) => {
                       >
                         {passwordFeedback.slice(0, 2).map((feedback, idx) => (
                           <div key={idx} className="flex items-start">
-                            <AlertCircle className="h-3.5 w-3.5 text-amber-500 mr-1.5 mt-0.5 flex-shrink-0" />
                             <span>{feedback}</span>
                           </div>
                         ))}
@@ -681,16 +661,14 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess }) => {
                   <label htmlFor="confirm-password-register" className="block text-sm font-medium text-gray-700 flex items-center">
                     Confirm Password
                     {errorType === 'confirmPassword' && (
-                      <span className="ml-2 text-xs text-red-500 flex items-center">
-                        <XCircle className="h-3 w-3 mr-1" />Don't Match
+                      <span className="ml-2 text-xs text-red-500">
+                        Don't Match
                       </span>
                     )}
                   </label>
                 </div>
                 <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                    <Lock className={`h-5 w-5 ${errorType === 'confirmPassword' ? 'text-red-400' : isFocused === 'confirmPassword' ? 'text-indigo-500' : 'text-gray-400'} transition-colors duration-200`} />
-                  </div>
+
                   <Input
                     id="confirm-password-register"
                     name="confirmPassword"
@@ -710,6 +688,9 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess }) => {
                     aria-invalid={errorType === 'confirmPassword'}
                     aria-describedby={errorType === 'confirmPassword' ? "confirm-password-error" : undefined}
                   />
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <Shield className={`h-5 w-5 ${isFocused === 'confirmPassword' ? 'text-indigo-500' : 'text-gray-400'} transition-colors duration-200`} />
+                  </div>
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
@@ -759,7 +740,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess }) => {
                 </Button>
                 <Button 
                   type="submit" 
-                  className={`flex-1 flex justify-center items-center rounded-2xl py-2.5 text-base font-medium shadow-sm transition-all duration-300 ${
+                  className={`flex-1 flex justify-center items-center rounded-2xl py-2.5 text-base font-medium shadow-sm transition-all duration-300 group relative overflow-hidden ${
                     isSuccess 
                       ? "bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white"
                       : "bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white"
@@ -784,37 +765,50 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess }) => {
                     </motion.div>
                   ) : null}
                   
-                  <span>
+                  <span className="relative z-10">
                     {isLoading ? 'Creating...' : isSuccess ? 'Created!' : 'Create Account'}
                   </span>
+
+                  {!isLoading && !isSuccess && (
+                    <>
+                      <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 to-violet-500 opacity-0 hover:opacity-30 transition-opacity duration-300 rounded-2xl"></div>
+                      <div className="absolute -inset-1 bg-gradient-to-r from-indigo-400 to-violet-400 opacity-0 group-hover:opacity-20 blur-lg transition-all duration-300 rounded-2xl"></div>
+                      <motion.div 
+                        className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-10"
+                        style={{
+                          background: "radial-gradient(circle at 50% 50%, rgba(255,255,255,0.8), transparent 40%)"
+                        }}
+                        animate={{
+                          opacity: [0, 0.1, 0]
+                        }}
+                        transition={{
+                          duration: 10,
+                          repeat: Infinity,
+                          ease: "linear"
+                        }}
+                      />
+                    </>
+                  )}
                 </Button>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
         
-        <p className="text-xs text-center text-gray-500 mt-4">
-          By creating an account, you agree to our{' '}
-          <a href="/terms" className="text-indigo-600 hover:text-indigo-500 font-medium hover:underline">
-            Terms of Service
-          </a>{' '}
-          and{' '}
-          <a href="/privacy" className="text-indigo-600 hover:text-indigo-500 font-medium hover:underline">
-            Privacy Policy
-          </a>
-        </p>
+        <div className="mt-4 px-4 py-3 bg-gray-50/70 dark:bg-gray-800/30 rounded-xl backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50">
+          <p className="text-xs text-center text-gray-600 dark:text-gray-400">
+            By creating an account, you agree to our{' '}
+            <a href="/terms" className="text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300 font-medium hover:underline transition-colors">
+              Terms of Service
+            </a>{' '}
+            and{' '}
+            <a href="/privacy" className="text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300 font-medium hover:underline transition-colors">
+              Privacy Policy
+            </a>
+          </p>
+        </div>
         
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2 }}
-          className="flex justify-center items-center mt-2"
-        >
-          <div className="p-1 bg-indigo-50 dark:bg-indigo-900/20 rounded-full">
-            <ShieldCheck className="h-3.5 w-3.5 text-indigo-500" />
-          </div>
-          <span className="text-xs text-gray-500 ml-1.5">Secure, encrypted registration</span>
-        </motion.div>
+
       </form>
     </motion.div>
   );
